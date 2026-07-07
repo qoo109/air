@@ -1,0 +1,319 @@
+:root {
+  color-scheme: dark;
+  --bg: #080a0f;
+  --panel: rgba(12, 17, 25, 0.88);
+  --line: rgba(255, 255, 255, 0.16);
+  --text: #f5f8ff;
+  --muted: #9aa8b8;
+  --cyan: #38e8ff;
+  --red: #ff476a;
+  --amber: #ffbf4d;
+  --green: #56f39c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    linear-gradient(rgba(8, 10, 15, 0.74), rgba(8, 10, 15, 0.92)),
+    url("assets/neon-air-hockey-concept.png") center / cover fixed,
+    var(--bg);
+  color: var(--text);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Noto Sans TC", sans-serif;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1180px, 100%);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 16px;
+  align-items: center;
+}
+
+.game-panel,
+.info-panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(18px);
+}
+
+.game-panel {
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.topbar {
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--cyan);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2.9rem);
+  line-height: 1;
+}
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(74px, 1fr));
+  gap: 8px;
+}
+
+.score-cell {
+  min-width: 74px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  text-align: center;
+}
+
+.score-cell span,
+.stat-grid span,
+.select-label span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.score-cell strong {
+  display: block;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.score-cell.player strong {
+  color: var(--cyan);
+}
+
+.score-cell.ai strong {
+  color: var(--red);
+}
+
+.rink-wrap {
+  position: relative;
+  width: min(68svh, 100%);
+  max-width: 620px;
+  margin: 8px auto 14px;
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #10151c;
+  box-shadow:
+    inset 0 0 44px rgba(56, 232, 255, 0.14),
+    0 0 42px rgba(56, 232, 255, 0.12);
+  touch-action: none;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: none;
+}
+
+.round-banner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: calc(100% - 36px);
+  padding: 10px 14px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(8, 10, 15, 0.72);
+  color: var(--text);
+  font-weight: 800;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.round-banner.show {
+  opacity: 1;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+button,
+select,
+.toggle {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+button {
+  padding: 0 16px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+button:first-child {
+  border-color: rgba(56, 232, 255, 0.58);
+  background: rgba(56, 232, 255, 0.16);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cyan);
+}
+
+.select-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+select {
+  height: 42px;
+  padding: 0 10px;
+}
+
+.info-panel {
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.concept-card {
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  aspect-ratio: 16 / 9;
+  background: #0a0d12;
+}
+
+.concept-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.stat-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stat-grid div {
+  min-height: 74px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.stat-grid strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.55rem;
+}
+
+@media (max-width: 860px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .info-panel {
+    order: 2;
+  }
+
+  .concept-card {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .app-shell {
+    padding-inline: 10px;
+  }
+
+  .game-panel {
+    padding: 10px;
+  }
+
+  .topbar {
+    min-height: 86px;
+    align-items: flex-start;
+  }
+
+  h1 {
+    max-width: 6em;
+    line-height: 1.04;
+  }
+
+  .scoreboard {
+    grid-template-columns: repeat(2, 64px);
+  }
+
+  .score-cell {
+    min-width: 0;
+    padding-inline: 6px;
+  }
+
+  .rink-wrap {
+    width: min(100%, 72svh);
+  }
+
+  .controls {
+    justify-content: flex-start;
+  }
+}

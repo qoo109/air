@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>空氣曲棍球</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="game-panel" aria-label="空氣曲棍球遊戲">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Neon Air Hockey</p>
+            <h1>空氣曲棍球</h1>
+          </div>
+          <div class="scoreboard" aria-label="比分">
+            <div class="score-cell player">
+              <span>玩家</span>
+              <strong id="playerScore">0</strong>
+            </div>
+            <div class="score-cell ai">
+              <span>AI</span>
+              <strong id="aiScore">0</strong>
+            </div>
+          </div>
+        </header>
+
+        <div class="rink-wrap">
+          <canvas id="gameCanvas" width="900" height="1350" aria-label="空氣曲棍球球桌"></canvas>
+          <div id="roundBanner" class="round-banner">拖曳藍色球拍開始</div>
+        </div>
+
+        <footer class="controls">
+          <button id="startButton" type="button">開始</button>
+          <button id="resetButton" type="button">重設</button>
+          <label class="toggle">
+            <input id="soundToggle" type="checkbox" checked />
+            <span>音效</span>
+          </label>
+          <label class="select-label">
+            <span>難度</span>
+            <select id="difficultySelect">
+              <option value="easy">輕鬆</option>
+              <option value="normal" selected>標準</option>
+              <option value="hard">高手</option>
+            </select>
+          </label>
+        </footer>
+      </section>
+
+      <aside class="info-panel" aria-label="遊戲狀態">
+        <div class="concept-card">
+          <img src="assets/neon-air-hockey-concept.png" alt="霓虹空氣曲棍球視覺概念圖" />
+        </div>
+        <div class="stat-grid">
+          <div>
+            <span>目標分數</span>
+            <strong>7</strong>
+          </div>
+          <div>
+            <span>最高連擊</span>
+            <strong id="bestRally">0</strong>
+          </div>
+          <div>
+            <span>目前連擊</span>
+            <strong id="rallyCount">0</strong>
+          </div>
+          <div>
+            <span>球速</span>
+            <strong id="speedReadout">0</strong>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -7,6 +7,7 @@ const rallyCountEl = document.getElementById("rallyCount");
 const bestRallyEl = document.getElementById("bestRally");
 const speedReadoutEl = document.getElementById("speedReadout");
 const bannerEl = document.getElementById("roundBanner");
+const statusEl = document.getElementById("status");
 const startButton = document.getElementById("startButton");
 const resetButton = document.getElementById("resetButton");
 const fullscreenButton = document.getElementById("fullscreenButton");
@@ -14,24 +15,47 @@ const soundToggle = document.getElementById("soundToggle");
 const difficultySelect = document.getElementById("difficultySelect");
 const fpsReadoutEl = document.getElementById("fpsReadout");
 const statusReadoutEl = document.getElementById("statusReadout");
+const targetScoreInput = document.getElementById("targetScore");
+const targetScoreReadout = document.getElementById("targetScoreReadout");
+const difficultyButtons = document.querySelectorAll(".difficulty-btn");
 
-const W = canvas.width;
-const H = canvas.height;
+const W = 900;
+const H = 1200;
 const rail = 38;
 const centerY = H / 2;
-const targetScore = 7;
 const goalWidth = 330;
 const paddleRadius = 62;
 const puckRadius = 28;
 
 const difficulties = {
-  easy: { speed: 0.07, error: 88, strike: 0.82, predict: 8 },
-  normal: { speed: 0.095, error: 42, strike: 1, predict: 16 },
-  hard: { speed: 0.128, error: 14, strike: 1.2, predict: 30 },
+  easy: { aiSpeed: 8.5, reaction: 0.052, error: 88, strike: 0.82, predict: 8 },
+  normal: { aiSpeed: 11.2, reaction: 0.078, error: 42, strike: 1, predict: 16 },
+  hard: { aiSpeed: 14, reaction: 0.108, error: 14, strike: 1.2, predict: 30 },
 };
 
-let running = false;
-let matchOver = false;
+const GAME_STATE = {
+  READY: "ready",
+  PLAYING: "playing",
+  PAUSED: "paused",
+  GAME_OVER: "gameOver",
+};
+
+const statusText = {
+  [GAME_STATE.READY]: "拖曳藍色球拍或按「開始」發球",
+  [GAME_STATE.PLAYING]: "遊戲進行中",
+  [GAME_STATE.PAUSED]: "已暫停",
+  [GAME_STATE.GAME_OVER]: "比賽結束，按「再玩一次」重新開始",
+};
+
+const shortStatusText = {
+  [GAME_STATE.READY]: "待機",
+  [GAME_STATE.PLAYING]: "遊戲中",
+  [GAME_STATE.PAUSED]: "暫停",
+  [GAME_STATE.GAME_OVER]: "結束",
+};
+
+let gameState = GAME_STATE.READY;
+let difficulty = "normal";
 let last = performance.now();
 let audio;
 let scores = { player: 0, ai: 0 };
@@ -74,6 +98,8 @@ const ai = {
   vy: 0,
   color: "#ff476a",
   wobble: 0,
+  targetX: W / 2,
+  targetY: H * 0.22,
 };
 
 const puck = {
@@ -107,6 +133,45 @@ function tone(freq, duration, type = "sine", gain = 0.05) {
   osc.stop(audio.currentTime + duration);
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+  ctx.setTransform((canvas.width / W), 0, 0, (canvas.height / H), 0, 0);
+}
+
+function setGameState(nextState) {
+  gameState = nextState;
+  statusEl.textContent = statusText[gameState];
+  statusReadoutEl.textContent = shortStatusText[gameState];
+
+  if (gameState === GAME_STATE.READY) startButton.textContent = "開始";
+  if (gameState === GAME_STATE.PLAYING) startButton.textContent = "暫停";
+  if (gameState === GAME_STATE.PAUSED) startButton.textContent = "繼續";
+  if (gameState === GAME_STATE.GAME_OVER) startButton.textContent = "再玩一次";
+}
+
+function getTargetScore() {
+  const value = Number(targetScoreInput.value);
+
+  if (!Number.isFinite(value)) {
+    targetScoreInput.value = 7;
+    targetScoreReadout.textContent = "7";
+    return 7;
+  }
+
+  const safeValue = clamp(Math.round(value), 1, 20);
+  targetScoreInput.value = safeValue;
+  targetScoreReadout.textContent = safeValue;
+  return safeValue;
+}
+
 function showBanner(text, ms = 1100) {
   bannerEl.textContent = text;
   bannerEl.classList.add("show");
@@ -120,7 +185,9 @@ function updateUI() {
   bestRallyEl.textContent = bestRally;
   speedReadoutEl.textContent = Math.round(Math.hypot(puck.vx, puck.vy));
   fpsReadoutEl.textContent = fps;
-  statusReadoutEl.textContent = matchOver ? "結束" : running ? "遊戲中" : "待機";
+  statusEl.textContent = statusText[gameState];
+  statusReadoutEl.textContent = shortStatusText[gameState];
+  targetScoreReadout.textContent = targetScoreInput.value || "7";
 }
 
 function resetPuck(direction = Math.random() > 0.5 ? 1 : -1) {
@@ -138,8 +205,7 @@ function resetPuck(direction = Math.random() > 0.5 ? 1 : -1) {
 }
 
 function resetMatch() {
-  running = false;
-  matchOver = false;
+  setGameState(GAME_STATE.READY);
   scores = { player: 0, ai: 0 };
   rally = 0;
   particles.length = 0;
@@ -154,7 +220,7 @@ function resetMatch() {
   pointer.x = player.x;
   pointer.y = player.y;
 
-  startButton.textContent = "開始";
+  getTargetScore();
   resetPuck();
   updateUI();
   showBanner("拖曳藍色球拍開始", 1500);
@@ -163,10 +229,18 @@ function resetMatch() {
 function startGame() {
   ensureAudio();
 
-  if (matchOver) resetMatch();
+  if (gameState === GAME_STATE.GAME_OVER) {
+    resetMatch();
+  }
 
-  running = true;
-  startButton.textContent = "進行中";
+  if (gameState === GAME_STATE.PLAYING) {
+    setGameState(GAME_STATE.PAUSED);
+    showBanner("已暫停", 650);
+    tone(220, 0.06, "triangle", 0.025);
+    return;
+  }
+
+  setGameState(GAME_STATE.PLAYING);
   showBanner("開始！", 650);
   tone(660, 0.07, "square", 0.04);
 }
@@ -220,7 +294,7 @@ function moveAI(dt) {
   ai.px = ai.x;
   ai.py = ai.y;
 
-  const diff = difficulties[difficultySelect.value];
+  const diff = difficulties[difficulty];
   ai.wobble += 0.025 * dt;
 
   const attacking = puck.y < centerY + 90 && puck.vy < 16;
@@ -228,15 +302,23 @@ function moveAI(dt) {
   const attackY = Math.min(centerY - paddleRadius - 12, puck.y - 92);
 
   const predictedX = predictPuckX(diff.predict);
-  const error = Math.sin(ai.wobble * 1.7) * diff.error;
+  const error =
+    Math.sin(ai.wobble * 1.7) * diff.error +
+    Math.sin(ai.wobble * 0.47) * diff.error * 0.35;
 
-  const targetX = attacking ? predictedX + error : W / 2 + error * 0.6;
-  const targetY = attacking ? attackY : defendY;
+  ai.targetX += ((attacking ? predictedX + error : W / 2 + error * 0.6) - ai.targetX) * diff.reaction * dt;
+  ai.targetY += ((attacking ? attackY : defendY) - ai.targetY) * diff.reaction * dt;
 
-  const reactivity = diff.speed * dt;
+  const dx = ai.targetX - ai.x;
+  const dy = ai.targetY - ai.y;
+  const distance = Math.hypot(dx, dy);
+  const maxStep = diff.aiSpeed * dt;
 
-  ai.x += (targetX - ai.x) * reactivity;
-  ai.y += (targetY - ai.y) * reactivity;
+  if (distance > 0) {
+    const step = Math.min(distance, maxStep);
+    ai.x += (dx / distance) * step;
+    ai.y += (dy / distance) * step;
+  }
 
   clampToTable(ai, "top");
 
@@ -283,7 +365,7 @@ function collidePaddle(paddle, isAI) {
     puck.vy -= 2 * incoming * ny;
   }
 
-  const boost = isAI ? difficulties[difficultySelect.value].strike : 1.16;
+  const boost = isAI ? difficulties[difficulty].strike : 1.16;
 
   puck.vx += paddle.vx * 0.42 * boost;
   puck.vy += paddle.vy * 0.42 * boost;
@@ -370,11 +452,9 @@ function score(side) {
 
   spawnParticles(W / 2, isPlayer ? rail : H - rail, isPlayer ? "#38e8ff" : "#ff476a", 70, 12);
 
-  if (scores[side] >= targetScore) {
-    running = false;
-    matchOver = true;
-    startButton.textContent = "再玩一次";
-    showBanner(isPlayer ? "玩家獲勝！🏆" : "AI 獲勝！", 2400);
+  if (scores[side] >= getTargetScore()) {
+    setGameState(GAME_STATE.GAME_OVER);
+    showBanner(isPlayer ? "玩家獲勝！" : "AI 獲勝！", 2400);
   } else {
     showBanner(isPlayer ? "玩家得分！" : "AI 得分！", 1100);
   }
@@ -662,7 +742,7 @@ function tick(now) {
     if (bannerTimer <= 0) bannerEl.classList.remove("show");
   }
 
-  if (running) {
+  if (gameState === GAME_STATE.PLAYING) {
     movePlayer(dt);
     moveAI(dt);
     updatePuck(dt);
@@ -683,35 +763,39 @@ function canvasPointer(evt) {
   const rect = canvas.getBoundingClientRect();
 
   return {
-    x: ((evt.clientX - rect.left) / rect.width) * W,
-    y: ((evt.clientY - rect.top) / rect.height) * H,
+    x: clamp(((evt.clientX - rect.left) / rect.width) * W, rail + paddleRadius, W - rail - paddleRadius),
+    y: clamp(((evt.clientY - rect.top) / rect.height) * H, centerY + paddleRadius, H - rail - paddleRadius),
   };
 }
 
 canvas.addEventListener("pointerdown", (evt) => {
+  evt.preventDefault();
   canvas.setPointerCapture(evt.pointerId);
   pointer.active = true;
 
   const pos = canvasPointer(evt);
   pointer.x = pos.x;
-  pointer.y = Math.max(centerY + paddleRadius, pos.y);
+  pointer.y = pos.y;
 
-  startGame();
+  if (gameState === GAME_STATE.READY || gameState === GAME_STATE.PAUSED) startGame();
 });
 
 canvas.addEventListener("pointermove", (evt) => {
+  evt.preventDefault();
   if (!pointer.active) return;
 
   const pos = canvasPointer(evt);
   pointer.x = pos.x;
-  pointer.y = Math.max(centerY + paddleRadius, pos.y);
+  pointer.y = pos.y;
 });
 
-canvas.addEventListener("pointerup", () => {
+canvas.addEventListener("pointerup", (evt) => {
+  evt.preventDefault();
   pointer.active = false;
 });
 
-canvas.addEventListener("pointercancel", () => {
+canvas.addEventListener("pointercancel", (evt) => {
+  evt.preventDefault();
   pointer.active = false;
 });
 
@@ -737,8 +821,42 @@ fullscreenButton.addEventListener("click", async () => {
 });
 
 difficultySelect.addEventListener("change", () => {
-  showBanner(`難度：${difficultySelect.selectedOptions[0].textContent}`, 900);
+  setDifficulty(difficultySelect.value);
 });
 
+difficultyButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setDifficulty(button.dataset.difficulty);
+  });
+});
+
+targetScoreInput.addEventListener("change", () => {
+  const score = getTargetScore();
+  showBanner(`目標分數：${score}`, 900);
+});
+
+targetScoreInput.addEventListener("input", () => {
+  if (targetScoreInput.value !== "") getTargetScore();
+});
+
+targetScoreInput.addEventListener("blur", getTargetScore);
+
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("orientationchange", resizeCanvas);
+
+function setDifficulty(nextDifficulty) {
+  difficulty = difficulties[nextDifficulty] ? nextDifficulty : "normal";
+  difficultySelect.value = difficulty;
+
+  difficultyButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.difficulty === difficulty);
+  });
+
+  const label = [...difficultyButtons].find((button) => button.dataset.difficulty === difficulty)?.textContent || "標準";
+  showBanner(`難度：${label}`, 900);
+}
+
+resizeCanvas();
+setDifficulty("normal");
 resetMatch();
 requestAnimationFrame(tick);

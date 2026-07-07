@@ -32,13 +32,17 @@
         <canvas
           id="gameCanvas"
           width="900"
-          height="1350"
+          height="1200"
           aria-label="霓虹空氣曲棍球球桌"
         ></canvas>
 
         <div id="roundBanner" class="round-banner show">
           拖曳藍色球拍開始
         </div>
+      </div>
+
+      <div id="status" class="status-strip" aria-live="polite">
+        拖曳藍色球拍或按「開始」發球
       </div>
 
       <footer class="controls">
@@ -51,7 +55,18 @@
           <span>音效</span>
         </label>
 
-        <label class="select-label">
+        <label class="target-label">
+          <span>目標</span>
+          <input id="targetScore" type="number" min="1" max="20" step="1" value="7" inputmode="numeric" />
+        </label>
+
+        <div class="difficulty-group" aria-label="難度">
+          <button class="difficulty-btn" type="button" data-difficulty="easy">輕鬆</button>
+          <button class="difficulty-btn active" type="button" data-difficulty="normal">標準</button>
+          <button class="difficulty-btn" type="button" data-difficulty="hard">高手</button>
+        </div>
+
+        <label class="select-label legacy-difficulty">
           <span>難度</span>
           <select id="difficultySelect">
             <option value="easy">輕鬆</option>

@@ -24,6 +24,7 @@ body{
     width:100%;
     height:100%;
     overflow:hidden;
+    touch-action:none;
     background:
     radial-gradient(circle at top,#1a36ff33,transparent 45%),
     radial-gradient(circle at bottom,#ff008833,transparent 45%),
@@ -46,7 +47,7 @@ input{
 
 .app-shell{
 
-    width:min(1280px,100%);
+    width:min(980px,100%);
     height:100svh;
 
     margin:auto;
@@ -55,14 +56,16 @@ input{
 
     grid-template-columns:
     minmax(0,1fr)
-    300px;
+    260px;
 
-    gap:18px;
+    gap:14px;
 
     padding:
-    max(18px,env(safe-area-inset-top))
-    18px
-    max(18px,env(safe-area-inset-bottom));
+    max(12px,env(safe-area-inset-top))
+    14px
+    max(12px,env(safe-area-inset-bottom));
+
+    align-items:stretch;
 }
 
 .game-panel,
@@ -83,9 +86,11 @@ input{
 
 .game-panel{
 
-    border-radius:16px;
+    border-radius:12px;
 
-    padding:16px;
+    min-height:0;
+
+    padding:12px;
 
     display:flex;
 
@@ -100,27 +105,30 @@ input{
 
     align-items:center;
 
-    margin-bottom:12px;
+    gap:12px;
+
+    margin-bottom:8px;
 }
 
 .eyebrow{
 
     color:var(--cyan);
 
-    font-size:.8rem;
+    font-size:.72rem;
 
     font-weight:800;
 
-    letter-spacing:2px;
+    letter-spacing:1px;
 
     text-transform:uppercase;
 }
 
 h1{
 
-    margin-top:3px;
+    margin-top:1px;
 
-    font-size:clamp(1.8rem,4vw,3rem);
+    font-size:clamp(1.7rem,3vw,2.35rem);
+    line-height:1;
 
     text-shadow:
 
@@ -133,14 +141,14 @@ h1{
 
     display:flex;
 
-    gap:12px;
+    gap:8px;
 }
 
 .score-cell{
 
-    width:86px;
+    width:74px;
 
-    border-radius:12px;
+    border-radius:10px;
 
     background:#ffffff0c;
 
@@ -148,7 +156,7 @@ h1{
 
     text-align:center;
 
-    padding:8px;
+    padding:7px;
 }
 
 .score-cell span{
@@ -162,9 +170,9 @@ h1{
 
     display:block;
 
-    font-size:2rem;
+    font-size:1.65rem;
 
-    margin-top:5px;
+    margin-top:3px;
 }
 
 .player strong{
@@ -181,22 +189,28 @@ h1{
 
     position:relative;
 
-    flex:1;
+    flex:1 1 auto;
+    min-height:0;
 
     display:flex;
 
     justify-content:center;
 
     align-items:center;
+
+    overflow:hidden;
 }
 
 canvas{
 
-    width:min(68svh,100%);
+    width:auto;
+    height:100%;
+    max-width:100%;
+    max-height:100%;
 
-    aspect-ratio:2/3;
+    aspect-ratio:3/4;
 
-    border-radius:18px;
+    border-radius:14px;
 
     border:2px solid #39e9ff55;
 
@@ -209,6 +223,9 @@ canvas{
     0 0 40px #00d9ff33;
 
     touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
 }
 
 .round-banner{
@@ -242,9 +259,21 @@ canvas{
     opacity:1;
 }
 
+.status-strip{
+    min-height:34px;
+    margin-top:8px;
+    padding:7px 12px;
+    border:1px solid #ffffff1c;
+    border-radius:10px;
+    background:#050b13aa;
+    color:#dbe8f8;
+    font-weight:800;
+    text-align:center;
+}
+
 .controls{
 
-    margin-top:14px;
+    margin-top:8px;
 
     display:flex;
 
@@ -252,16 +281,16 @@ canvas{
 
     justify-content:center;
 
-    gap:10px;
+    gap:8px;
 }
 
 button{
 
     cursor:pointer;
 
-    padding:0 18px;
+    padding:0 14px;
 
-    height:46px;
+    height:38px;
 
     border-radius:999px;
 
@@ -297,9 +326,12 @@ button:hover{
     align-items:center;
 
     gap:8px;
+
+    min-height:38px;
 }
 
-.select-label{
+.select-label,
+.target-label{
 
     display:flex;
 
@@ -308,9 +340,10 @@ button:hover{
     gap:8px;
 }
 
-select{
+select,
+.target-label input{
 
-    height:44px;
+    height:38px;
 
     border-radius:999px;
 
@@ -323,17 +356,64 @@ select{
     padding:0 14px;
 }
 
+.target-label input{
+    width:72px;
+}
+
+.difficulty-group{
+    display:flex;
+    gap:8px;
+    padding:4px;
+    border:1px solid #ffffff18;
+    border-radius:999px;
+    background:#06111d;
+}
+
+.difficulty-btn{
+    height:32px;
+    padding:0 13px;
+    opacity:.65;
+    border:1px solid #39e9ff66;
+    background:#0f1d2d;
+    color:#d8faff;
+    box-shadow:none;
+}
+
+.difficulty-btn.active{
+    opacity:1;
+    background:#39e9ff;
+    color:#001018;
+    box-shadow:0 0 14px #00f5ff;
+}
+
+.difficulty-btn:hover{
+    transform:none;
+    box-shadow:0 0 14px #00d9ff88;
+}
+
+.legacy-difficulty{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    clip-path:inset(50%);
+    white-space:nowrap;
+}
+
 .info-panel{
 
-    border-radius:16px;
+    border-radius:12px;
 
-    padding:18px;
+    min-height:0;
+
+    padding:12px;
 
     display:flex;
 
     flex-direction:column;
 
-    gap:16px;
+    gap:10px;
 }
 
 .hero-card{
@@ -342,9 +422,9 @@ select{
 
     overflow:hidden;
 
-    height:170px;
+    height:96px;
 
-    border-radius:16px;
+    border-radius:10px;
 
     background:
 
@@ -364,13 +444,13 @@ select{
 
     position:absolute;
 
-    width:180px;
+    width:130px;
 
-    height:180px;
+    height:130px;
 
     border-radius:50%;
 
-    filter:blur(50px);
+    filter:blur(38px);
 }
 
 .orb-cyan{
@@ -404,18 +484,18 @@ select{
 
     color:var(--cyan);
 
-    letter-spacing:3px;
+    letter-spacing:1px;
 
-    font-size:.8rem;
+    font-size:.7rem;
 }
 
 .hero-title strong{
 
     display:block;
 
-    margin-top:8px;
+    margin-top:5px;
 
-    font-size:1.8rem;
+    font-size:1.2rem;
 
     text-shadow:
 
@@ -428,18 +508,18 @@ select{
 
     grid-template-columns:repeat(2,1fr);
 
-    gap:10px;
+    gap:8px;
 }
 
 .stat-grid div{
 
-    border-radius:12px;
+    border-radius:10px;
 
     background:#ffffff08;
 
     border:1px solid #ffffff11;
 
-    padding:12px;
+    padding:9px;
 }
 
 .stat-grid span{
@@ -455,18 +535,18 @@ select{
 
     display:block;
 
-    margin-top:5px;
+    margin-top:2px;
 
-    font-size:1.6rem;
+    font-size:1.3rem;
 }
 
 .hint{
 
     color:#cdd7e6;
 
-    line-height:1.6;
+    line-height:1.45;
 
-    font-size:.92rem;
+    font-size:.82rem;
 }
 
 @media(max-width:900px){
@@ -474,6 +554,7 @@ select{
 .app-shell{
 
 grid-template-columns:1fr;
+padding:10px;
 }
 
 .info-panel{
@@ -483,6 +564,152 @@ display:none;
 
 canvas{
 
-width:min(100%,72svh);
+width:auto;
+height:100%;
+max-width:100%;
 }
+
+.controls{
+    justify-content:flex-start;
+}
+}
+
+@media(max-width:520px){
+    .app-shell{
+        height:100dvh;
+        padding:8px 8px max(76px,env(safe-area-inset-bottom));
+    }
+
+    .game-panel{
+        padding:7px;
+        border-radius:10px;
+    }
+
+    .topbar{
+        gap:6px;
+        margin-bottom:5px;
+    }
+
+    .brand{
+        min-width:0;
+    }
+
+    .eyebrow{
+        font-size:.56rem;
+        line-height:1;
+    }
+
+    h1{
+        font-size:clamp(1.15rem,6.4vw,1.5rem);
+        white-space:nowrap;
+    }
+
+    .scoreboard{
+        gap:6px;
+        flex-shrink:0;
+    }
+
+    .score-cell{
+        width:48px;
+        border-radius:9px;
+        padding:4px;
+    }
+
+    .score-cell span{
+        font-size:.62rem;
+    }
+
+    .score-cell strong{
+        font-size:1.28rem;
+        margin-top:1px;
+    }
+
+    .rink-wrap{
+        border-radius:10px;
+    }
+
+    canvas{
+        border-radius:10px;
+        border-width:1px;
+    }
+
+    button{
+        height:32px;
+        padding:0 10px;
+        font-size:.9rem;
+    }
+
+    .status-strip{
+        display:none;
+    }
+
+    .controls{
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:6px;
+        margin-top:6px;
+    }
+
+    .controls > button{
+        width:100%;
+    }
+
+    .toggle,
+    .target-label{
+        min-height:32px;
+        justify-content:center;
+        font-size:.82rem;
+    }
+
+    .target-label input{
+        width:54px;
+        height:32px;
+        padding:0 8px;
+    }
+
+    .toggle input{
+        width:15px;
+        height:15px;
+    }
+
+    .difficulty-group{
+        grid-column:1/-1;
+        width:100%;
+        gap:5px;
+        padding:3px;
+    }
+
+    .difficulty-btn{
+        flex:1;
+        height:30px;
+        font-size:.84rem;
+        padding:0 8px;
+    }
+}
+
+@media(max-width:520px) and (max-height:720px){
+    .app-shell{
+        padding-bottom:max(64px,env(safe-area-inset-bottom));
+    }
+
+    .eyebrow{
+        display:none;
+    }
+
+    .score-cell{
+        width:44px;
+    }
+
+    .controls{
+        gap:5px;
+    }
+
+    button{
+        height:30px;
+        font-size:.82rem;
+    }
+
+    .difficulty-btn{
+        height:28px;
+    }
 }

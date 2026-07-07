@@ -9,39 +9,42 @@ const speedReadoutEl = document.getElementById("speedReadout");
 const bannerEl = document.getElementById("roundBanner");
 const startButton = document.getElementById("startButton");
 const resetButton = document.getElementById("resetButton");
+const fullscreenButton = document.getElementById("fullscreenButton");
 const soundToggle = document.getElementById("soundToggle");
 const difficultySelect = document.getElementById("difficultySelect");
+const fpsReadoutEl = document.getElementById("fpsReadout");
+const statusReadoutEl = document.getElementById("statusReadout");
 
 const W = canvas.width;
 const H = canvas.height;
-const targetScore = 7;
-const goalWidth = 330;
 const rail = 38;
 const centerY = H / 2;
+const targetScore = 7;
+const goalWidth = 330;
 const paddleRadius = 62;
 const puckRadius = 28;
 
 const difficulties = {
-  easy: { speed: 0.072, error: 88, strike: 0.82, predict: 8 },
-  normal: { speed: 0.095, error: 42, strike: 1.0, predict: 16 },
-  hard: { speed: 0.128, error: 16, strike: 1.2, predict: 28 },
+  easy: { speed: 0.07, error: 88, strike: 0.82, predict: 8 },
+  normal: { speed: 0.095, error: 42, strike: 1, predict: 16 },
+  hard: { speed: 0.128, error: 14, strike: 1.2, predict: 30 },
 };
 
 let running = false;
-let pausedBannerTimer = 0;
+let matchOver = false;
 let last = performance.now();
 let audio;
 let scores = { player: 0, ai: 0 };
 let rally = 0;
 let bestRally = Number(localStorage.getItem("airHockeyBestRally") || 0);
 let screenShake = 0;
-let matchOver = false;
+let bannerTimer = 0;
 let flashAlpha = 0;
 let goalText = "";
-let goalTextTimer = 0;
+let goalTimer = 0;
 let fps = 0;
-let fpsTimer = 0;
 let fpsFrames = 0;
+let fpsTimer = 0;
 
 const trail = [];
 const particles = [];
@@ -49,7 +52,7 @@ const particles = [];
 const pointer = {
   active: false,
   x: W / 2,
-  y: H * 0.76,
+  y: H * 0.78,
 };
 
 const player = {
@@ -93,39 +96,38 @@ function tone(freq, duration, type = "sine", gain = 0.05) {
 
   osc.type = type;
   osc.frequency.value = freq;
+
   amp.gain.setValueAtTime(gain, audio.currentTime);
   amp.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + duration);
 
   osc.connect(amp);
   amp.connect(audio.destination);
+
   osc.start();
   osc.stop(audio.currentTime + duration);
-}
-
-function playGoalSound(isPlayer) {
-  tone(isPlayer ? 660 : 180, 0.12, "sawtooth", 0.06);
-  setTimeout(() => tone(isPlayer ? 880 : 140, 0.16, "square", 0.045), 90);
 }
 
 function showBanner(text, ms = 1100) {
   bannerEl.textContent = text;
   bannerEl.classList.add("show");
-  pausedBannerTimer = ms;
+  bannerTimer = ms;
 }
 
-function updateScoreUI() {
+function updateUI() {
   playerScoreEl.textContent = scores.player;
   aiScoreEl.textContent = scores.ai;
   rallyCountEl.textContent = rally;
   bestRallyEl.textContent = bestRally;
   speedReadoutEl.textContent = Math.round(Math.hypot(puck.vx, puck.vy));
+  fpsReadoutEl.textContent = fps;
+  statusReadoutEl.textContent = matchOver ? "結束" : running ? "遊戲中" : "待機";
 }
 
 function resetPuck(direction = Math.random() > 0.5 ? 1 : -1) {
   puck.x = W / 2;
   puck.y = centerY;
 
-  const angle = -Math.PI / 2 + direction * (Math.random() * 0.5 - 0.25);
+  const angle = -Math.PI / 2 + direction * (Math.random() * 0.52 - 0.26);
   const speed = 8.8;
 
   puck.vx = Math.sin(angle) * speed;
@@ -136,12 +138,14 @@ function resetPuck(direction = Math.random() > 0.5 ? 1 : -1) {
 }
 
 function resetMatch() {
-  matchOver = false;
   running = false;
+  matchOver = false;
   scores = { player: 0, ai: 0 };
   rally = 0;
   particles.length = 0;
   trail.length = 0;
+  goalTimer = 0;
+  flashAlpha = 0;
 
   player.x = W / 2;
   player.y = H * 0.78;
@@ -150,9 +154,10 @@ function resetMatch() {
   pointer.x = player.x;
   pointer.y = player.y;
 
-  resetPuck(Math.random() > 0.5 ? 1 : -1);
-  updateScoreUI();
-  showBanner("拖曳藍色球拍開始", 1600);
+  startButton.textContent = "開始";
+  resetPuck();
+  updateUI();
+  showBanner("拖曳藍色球拍開始", 1500);
 }
 
 function startGame() {
@@ -162,9 +167,8 @@ function startGame() {
 
   running = true;
   startButton.textContent = "進行中";
-  showBanner("開始！", 700);
-
-  if (Math.abs(puck.vx) < 1 && Math.abs(puck.vy) < 1) resetPuck(1);
+  showBanner("開始！", 650);
+  tone(660, 0.07, "square", 0.04);
 }
 
 function clampToTable(body, half) {
@@ -217,9 +221,9 @@ function moveAI(dt) {
   ai.py = ai.y;
 
   const diff = difficulties[difficultySelect.value];
-  ai.wobble += 0.024 * dt;
+  ai.wobble += 0.025 * dt;
 
-  const attacking = puck.y < centerY + 100 && puck.vy < 16;
+  const attacking = puck.y < centerY + 90 && puck.vy < 16;
   const defendY = H * 0.22;
   const attackY = Math.min(centerY - paddleRadius - 12, puck.y - 92);
 
@@ -296,7 +300,7 @@ function collidePaddle(paddle, isAI) {
 
   screenShake = Math.min(18, speed * 0.45);
   spawnParticles(puck.x, puck.y, paddle.color, 22, 8);
-  tone(isAI ? 260 : 520, 0.06, "square", 0.045);
+  tone(isAI ? 260 : 520, 0.055, "square", 0.045);
 }
 
 function updatePuck(dt) {
@@ -304,7 +308,6 @@ function updatePuck(dt) {
     x: puck.x,
     y: puck.y,
     life: 24,
-    speed: Math.hypot(puck.vx, puck.vy),
   });
 
   if (trail.length > 34) trail.shift();
@@ -345,14 +348,39 @@ function updatePuck(dt) {
     tone(180, 0.04, "triangle", 0.035);
   }
 
-  if (puck.y < -puckRadius) {
-    score("player");
-  } else if (puck.y > H + puckRadius) {
-    score("ai");
-  }
+  if (puck.y < -puckRadius) score("player");
+  if (puck.y > H + puckRadius) score("ai");
 
   collidePaddle(player, false);
   collidePaddle(ai, true);
+}
+
+function score(side) {
+  scores[side]++;
+
+  const isPlayer = side === "player";
+
+  screenShake = 26;
+  flashAlpha = 0.5;
+  goalText = isPlayer ? "玩家得分！" : "AI 得分！";
+  goalTimer = 90;
+
+  tone(isPlayer ? 740 : 150, 0.16, "sawtooth", 0.06);
+  setTimeout(() => tone(isPlayer ? 920 : 120, 0.14, "square", 0.045), 90);
+
+  spawnParticles(W / 2, isPlayer ? rail : H - rail, isPlayer ? "#38e8ff" : "#ff476a", 70, 12);
+
+  if (scores[side] >= targetScore) {
+    running = false;
+    matchOver = true;
+    startButton.textContent = "再玩一次";
+    showBanner(isPlayer ? "玩家獲勝！🏆" : "AI 獲勝！", 2400);
+  } else {
+    showBanner(isPlayer ? "玩家得分！" : "AI 得分！", 1100);
+  }
+
+  resetPuck(isPlayer ? 1 : -1);
+  updateUI();
 }
 
 function updateParticles(dt) {
@@ -371,36 +399,8 @@ function updateParticles(dt) {
   for (const t of trail) t.life -= dt;
   while (trail.length && trail[0].life <= 0) trail.shift();
 
-  if (goalTextTimer > 0) goalTextTimer -= dt;
+  if (goalTimer > 0) goalTimer -= dt;
   flashAlpha *= 0.9;
-}
-
-function score(side) {
-  scores[side]++;
-
-  const isPlayer = side === "player";
-  playGoalSound(isPlayer);
-
-  screenShake = 26;
-  flashAlpha = 0.5;
-  goalText = isPlayer ? "玩家得分！" : "AI 得分！";
-  goalTextTimer = 90;
-
-  spawnParticles(W / 2, isPlayer ? rail : H - rail, isPlayer ? "#38e8ff" : "#ff476a", 70, 12);
-
-  const winner = scores[side] >= targetScore;
-
-  if (winner) {
-    running = false;
-    matchOver = true;
-    startButton.textContent = "再玩一次";
-    showBanner(isPlayer ? "玩家獲勝！🏆" : "AI 獲勝！", 2400);
-  } else {
-    showBanner(isPlayer ? "玩家得分！" : "AI 得分！", 1100);
-  }
-
-  resetPuck(isPlayer ? 1 : -1);
-  updateScoreUI();
 }
 
 function drawTable() {
@@ -409,6 +409,7 @@ function drawTable() {
 
   ctx.save();
   ctx.translate(shakeX, shakeY);
+
   screenShake *= 0.86;
 
   const gradient = ctx.createLinearGradient(0, 0, 0, H);
@@ -420,7 +421,7 @@ function drawTable() {
   ctx.fillRect(0, 0, W, H);
 
   drawGrid();
-  drawTableLines();
+  drawLines();
   drawGoal(W / 2, rail, "#ff476a", true);
   drawGoal(W / 2, H - rail, "#38e8ff", false);
   drawTrail();
@@ -429,7 +430,6 @@ function drawTable() {
   drawPaddle(ai, "AI");
   drawPaddle(player, "玩家");
   drawGoalText();
-  drawFPS();
 
   if (flashAlpha > 0.01) {
     ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
@@ -443,6 +443,7 @@ function drawGrid() {
   ctx.save();
 
   ctx.fillStyle = "rgba(255,255,255,0.035)";
+
   for (let y = rail + 20; y < H - rail; y += 54) {
     for (let x = rail + 22; x < W - rail; x += 54) {
       ctx.beginPath();
@@ -451,8 +452,9 @@ function drawGrid() {
     }
   }
 
-  const scanY = ((performance.now() / 18) % H);
+  const scanY = (performance.now() / 18) % H;
   const scan = ctx.createLinearGradient(0, scanY - 80, 0, scanY + 80);
+
   scan.addColorStop(0, "rgba(56,232,255,0)");
   scan.addColorStop(0.5, "rgba(56,232,255,0.13)");
   scan.addColorStop(1, "rgba(56,232,255,0)");
@@ -463,7 +465,7 @@ function drawGrid() {
   ctx.restore();
 }
 
-function drawTableLines() {
+function drawLines() {
   ctx.save();
 
   ctx.strokeStyle = "rgba(255,255,255,0.28)";
@@ -482,6 +484,7 @@ function drawTableLines() {
 
   ctx.strokeStyle = "rgba(255,255,255,0.2)";
   ctx.lineWidth = 3;
+
   ctx.beginPath();
   ctx.arc(W / 2, centerY, 145, 0, Math.PI * 2);
   ctx.stroke();
@@ -521,7 +524,7 @@ function drawPaddle(paddle, label) {
   );
 
   glow.addColorStop(0, "#ffffff");
-  glow.addColorStop(0.2, paddle.color);
+  glow.addColorStop(0.22, paddle.color);
   glow.addColorStop(1, "rgba(255,255,255,0.08)");
 
   ctx.shadowColor = paddle.color;
@@ -534,6 +537,7 @@ function drawPaddle(paddle, label) {
 
   ctx.shadowBlur = 0;
   ctx.fillStyle = "rgba(0,0,0,0.42)";
+
   ctx.beginPath();
   ctx.arc(paddle.x, paddle.y, paddleRadius * 0.44, 0, Math.PI * 2);
   ctx.fill();
@@ -550,8 +554,7 @@ function drawPaddle(paddle, label) {
 function drawTrail() {
   ctx.save();
 
-  for (let i = 0; i < trail.length; i++) {
-    const t = trail[i];
+  for (const t of trail) {
     const alpha = Math.max(0, t.life / 24);
     const size = puckRadius * (0.35 + alpha * 0.75);
 
@@ -612,12 +615,12 @@ function drawParticles() {
 }
 
 function drawGoalText() {
-  if (goalTextTimer <= 0) return;
+  if (goalTimer <= 0) return;
 
   ctx.save();
 
-  const alpha = Math.min(1, goalTextTimer / 25);
-  const scale = 1 + Math.sin(goalTextTimer * 0.12) * 0.05;
+  const alpha = Math.min(1, goalTimer / 25);
+  const scale = 1 + Math.sin(goalTimer * 0.12) * 0.05;
 
   ctx.translate(W / 2, H / 2);
   ctx.scale(scale, scale);
@@ -625,6 +628,7 @@ function drawGoalText() {
   ctx.globalAlpha = alpha;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+
   ctx.font = "900 92px system-ui, sans-serif";
   ctx.fillStyle = "#ffffff";
   ctx.shadowColor = "#38e8ff";
@@ -632,24 +636,9 @@ function drawGoalText() {
   ctx.fillText("GOAL!", 0, -34);
 
   ctx.font = "800 42px system-ui, sans-serif";
-  ctx.fillStyle = "#ffbf4d";
-  ctx.shadowColor = "#ffbf4d";
+  ctx.fillStyle = "#ffc94d";
+  ctx.shadowColor = "#ffc94d";
   ctx.fillText(goalText, 0, 42);
-
-  ctx.restore();
-}
-
-function drawFPS() {
-  ctx.save();
-
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
-  ctx.fillRect(W - 132, H - 58, 104, 34);
-
-  ctx.fillStyle = "#56f39c";
-  ctx.font = "bold 22px monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(`FPS ${fps}`, W - 80, H - 41);
 
   ctx.restore();
 }
@@ -668,9 +657,9 @@ function tick(now) {
     fpsTimer = 0;
   }
 
-  if (pausedBannerTimer > 0) {
-    pausedBannerTimer -= elapsed;
-    if (pausedBannerTimer <= 0) bannerEl.classList.remove("show");
+  if (bannerTimer > 0) {
+    bannerTimer -= elapsed;
+    if (bannerTimer <= 0) bannerEl.classList.remove("show");
   }
 
   if (running) {
@@ -678,14 +667,15 @@ function tick(now) {
     moveAI(dt);
     updatePuck(dt);
     updateParticles(dt);
-    updateScoreUI();
   } else {
     movePlayer(dt);
     moveAI(dt * 0.45);
     updateParticles(dt);
   }
 
+  updateUI();
   drawTable();
+
   requestAnimationFrame(tick);
 }
 
@@ -703,7 +693,6 @@ canvas.addEventListener("pointerdown", (evt) => {
   pointer.active = true;
 
   const pos = canvasPointer(evt);
-
   pointer.x = pos.x;
   pointer.y = Math.max(centerY + paddleRadius, pos.y);
 
@@ -714,7 +703,6 @@ canvas.addEventListener("pointermove", (evt) => {
   if (!pointer.active) return;
 
   const pos = canvasPointer(evt);
-
   pointer.x = pos.x;
   pointer.y = Math.max(centerY + paddleRadius, pos.y);
 });
@@ -732,7 +720,20 @@ startButton.addEventListener("click", startGame);
 resetButton.addEventListener("click", () => {
   ensureAudio();
   resetMatch();
-  startButton.textContent = "開始";
+});
+
+fullscreenButton.addEventListener("click", async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      fullscreenButton.textContent = "離開全螢幕";
+    } else {
+      await document.exitFullscreen();
+      fullscreenButton.textContent = "全螢幕";
+    }
+  } catch {
+    showBanner("此瀏覽器不支援全螢幕", 1200);
+  }
 });
 
 difficultySelect.addEventListener("change", () => {

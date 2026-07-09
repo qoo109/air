@@ -1,125 +1,96 @@
-<!doctype html>
-<html lang="zh-Hant">
+<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Neon Air Hockey｜空氣曲棍球</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#020711" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>蒸氣龐克空氣曲棍球 v1.1</title>
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <main class="app-shell">
-    <section class="game-panel" aria-label="空氣曲棍球遊戲">
-      <header class="topbar">
-        <div class="brand">
-          <p class="eyebrow">Neon Arcade</p>
-          <h1>空氣曲棍球</h1>
-        </div>
+  <div id="hud">
+    <div id="score-board">
+      <span id="ai-score">AI 0</span>
+      <span id="player-score">YOU 0</span>
+    </div>
+    <div id="mini-stats">
+      <span id="speed-label">0 km/h</span>
+      <span id="combo-label">COMBO x0</span>
+    </div>
+    <button id="pause-btn" aria-label="暫停">Ⅱ</button>
+  </div>
 
-        <div class="scoreboard" aria-label="比分">
-          <div class="score-cell player">
-            <span>玩家</span>
-            <strong id="playerScore">0</strong>
-          </div>
-          <div class="score-cell ai">
-            <span>AI</span>
-            <strong id="aiScore">0</strong>
-          </div>
-        </div>
-      </header>
+  <canvas id="gameCanvas"></canvas>
 
-      <div class="rink-wrap">
-        <canvas
-          id="gameCanvas"
-          width="900"
-          height="1200"
-          aria-label="霓虹空氣曲棍球球桌"
-        ></canvas>
+  <section id="menu" class="overlay active">
+    <div class="panel">
+      <p class="eyebrow">Steampunk v1.1 / Haptic Engine</p>
+      <h1>蒸氣龐克曲棍球</h1>
+      <p class="desc">手機直向操作，黃銅、齒輪、蒸氣煙霧與機械球桌風格。</p>
 
-        <div id="roundBanner" class="round-banner show">
-          拖曳藍色球拍開始
-        </div>
+      <label>
+        難度
+        <select id="difficulty-select">
+          <option value="easy">簡單</option>
+          <option value="normal" selected>普通</option>
+          <option value="hard">困難</option>
+          <option value="boss">Boss</option>
+        </select>
+      </label>
+
+      <label>
+        視覺主題
+        <select id="theme-select">
+          <option value="steampunk" selected>Steampunk 黃銅蒸氣</option>
+          <option value="copper">Copper 古銅工坊</option>
+          <option value="royal">Royal Brass 皇家黃銅</option>
+          <option value="coal">Coal Engine 煤炭機械</option>
+        </select>
+      </label>
+
+      <div class="switches">
+        <button id="sound-toggle" class="toggle active">音效 ON</button>
+        <button id="vibration-toggle" class="toggle active">震動 ON</button>
       </div>
 
-      <div id="status" class="status-strip" aria-live="polite">
-        拖曳藍色球拍或按「開始」發球
+      <div class="record">
+        最高勝場：<span id="best-win">0</span>
       </div>
 
-      <footer class="controls">
-        <button id="startButton" type="button">開始</button>
-        <button id="resetButton" type="button">重設</button>
-        <button id="fullscreenButton" type="button">全螢幕</button>
+      <button id="start-button" class="primary">開始遊戲</button>
+    </div>
+  </section>
 
-        <label class="toggle">
-          <input id="soundToggle" type="checkbox" checked />
-          <span>音效</span>
-        </label>
+  <section id="countdown" class="overlay transparent">
+    <div id="countdown-text">3</div>
+  </section>
 
-        <label class="target-label">
-          <span>目標</span>
-          <input id="targetScore" type="number" min="1" max="20" step="1" value="7" inputmode="numeric" />
-        </label>
+  <section id="pause" class="overlay">
+    <div class="panel">
+      <h2>暫停中</h2>
+      <button id="resume-button" class="primary">繼續</button>
+      <button id="back-menu-button">回首頁</button>
+    </div>
+  </section>
 
-        <div class="difficulty-group" aria-label="難度">
-          <button class="difficulty-btn" type="button" data-difficulty="easy">輕鬆</button>
-          <button class="difficulty-btn active" type="button" data-difficulty="normal">標準</button>
-          <button class="difficulty-btn" type="button" data-difficulty="hard">高手</button>
-        </div>
+  <section id="game-over" class="overlay">
+    <div class="panel">
+      <p class="eyebrow">Result</p>
+      <h2 id="winner-text">遊戲結束</h2>
+      <p id="final-score"></p>
+      <button id="restart-button" class="primary">再玩一次</button>
+      <button id="home-button">回首頁</button>
+    </div>
+  </section>
 
-        <label class="select-label legacy-difficulty">
-          <span>難度</span>
-          <select id="difficultySelect">
-            <option value="easy">輕鬆</option>
-            <option value="normal" selected>標準</option>
-            <option value="hard">高手</option>
-          </select>
-        </label>
-      </footer>
-    </section>
-
-    <aside class="info-panel" aria-label="遊戲狀態">
-      <div class="hero-card">
-        <div class="orb orb-cyan"></div>
-        <div class="orb orb-red"></div>
-        <div class="hero-title">
-          <span>V3 豪華版</span>
-          <strong>NEON AIR HOCKEY</strong>
-        </div>
-      </div>
-
-      <div class="stat-grid">
-        <div>
-          <span>目標分數</span>
-          <strong id="targetScoreReadout">7</strong>
-        </div>
-        <div>
-          <span>最高連擊</span>
-          <strong id="bestRally">0</strong>
-        </div>
-        <div>
-          <span>目前連擊</span>
-          <strong id="rallyCount">0</strong>
-        </div>
-        <div>
-          <span>球速</span>
-          <strong id="speedReadout">0</strong>
-        </div>
-        <div>
-          <span>FPS</span>
-          <strong id="fpsReadout">0</strong>
-        </div>
-        <div>
-          <span>狀態</span>
-          <strong id="statusReadout">待機</strong>
-        </div>
-      </div>
-
-      <p class="hint">
-        操作方式：滑鼠或手指拖曳藍色球拍。先得到 7 分者獲勝。
-      </p>
-    </aside>
-  </main>
-
-  <script src="app.js"></script>
+  <script src="game.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
+    }
+  </script>
 </body>
 </html>

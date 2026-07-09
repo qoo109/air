@@ -1,0 +1,17 @@
+{
+  "name": "蒸氣龐克曲棍球 v1.1",
+  "short_name": "Steam Hockey",
+  "description": "手機直向蒸氣龐克風格空氣曲棍球小遊戲，加入進階震動回饋",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#120b05",
+  "theme_color": "#120b05",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

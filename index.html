@@ -3,86 +3,145 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#020711" />
+  <meta name="theme-color" content="#b9d8ef" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>蒸氣龐克空氣曲棍球 v1.1</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>像素桌面空氣曲棍球 v1.4.1</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=1.4.1" />
 </head>
 <body>
-  <div id="hud">
-    <div id="score-board">
-      <span id="ai-score">AI 0</span>
-      <span id="player-score">YOU 0</span>
+  <div class="desktop-shortcuts" aria-hidden="true">
+    <div class="shortcut shortcut-star"><span>✦</span><small>POWER</small></div>
+    <div class="shortcut shortcut-heart"><span>♥</span><small>PLAYER</small></div>
+    <div class="shortcut shortcut-music"><span>♫</span><small>MUSIC</small></div>
+    <div class="shortcut shortcut-mail"><span>✉</span><small>MAIL</small></div>
+  </div>
+
+  <div id="hud" class="pixel-window hud-window">
+    <div class="hud-titlebar">
+      <span class="hud-dot"></span>
+      <span>HOCKEY_STATUS.EXE</span>
+      <button id="pause-btn" aria-label="暫停">Ⅱ</button>
     </div>
-    <div id="mini-stats">
-      <span id="speed-label">0 km/h</span>
-      <span id="combo-label">COMBO x0</span>
+    <div class="hud-content">
+      <div id="score-board">
+        <span id="ai-score">AI 0</span>
+        <span class="score-divider">★</span>
+        <span id="player-score">YOU 0</span>
+      </div>
+      <div id="mini-stats">
+        <span id="speed-label">0 km/h</span>
+        <span id="combo-label">COMBO x0</span>
+      </div>
     </div>
-    <button id="pause-btn" aria-label="暫停">Ⅱ</button>
   </div>
 
   <canvas id="gameCanvas"></canvas>
 
   <section id="menu" class="overlay active">
-    <div class="panel">
-      <p class="eyebrow">Steampunk v1.1 / Haptic Engine</p>
-      <h1>蒸氣龐克曲棍球</h1>
-      <p class="desc">手機直向操作，黃銅、齒輪、蒸氣煙霧與機械球桌風格。</p>
-
-      <label>
-        難度
-        <select id="difficulty-select">
-          <option value="easy">簡單</option>
-          <option value="normal" selected>普通</option>
-          <option value="hard">困難</option>
-          <option value="boss">Boss</option>
-        </select>
-      </label>
-
-      <label>
-        視覺主題
-        <select id="theme-select">
-          <option value="steampunk" selected>Steampunk 黃銅蒸氣</option>
-          <option value="copper">Copper 古銅工坊</option>
-          <option value="royal">Royal Brass 皇家黃銅</option>
-          <option value="coal">Coal Engine 煤炭機械</option>
-        </select>
-      </label>
-
-      <div class="switches">
-        <button id="sound-toggle" class="toggle active">音效 ON</button>
-        <button id="vibration-toggle" class="toggle active">震動 ON</button>
+    <div class="panel pixel-window menu-window">
+      <div class="window-titlebar">
+        <span class="window-icon">★</span>
+        <strong>PIXEL_HOCKEY.EXE</strong>
+        <div class="window-actions" aria-hidden="true"><span>─</span><span>□</span><span>×</span></div>
       </div>
 
-      <div class="record">
-        最高勝場：<span id="best-win">0</span>
-      </div>
+      <div class="window-content">
+        <p class="eyebrow">PIXEL DESKTOP EDITION / v1.4.1</p>
+        <h1>像素桌面曲棍球</h1>
+        <p class="desc">打開復古電腦桌面裡的小遊戲，拖曳球拍、擊退 AI，先拿到 7 分就獲勝。</p>
 
-      <button id="start-button" class="primary">開始遊戲</button>
+        <div class="pixel-banner" aria-hidden="true">
+          <span class="pixel-badge badge-teal">●</span>
+          <span class="pixel-badge badge-yellow">✦</span>
+          <span class="pixel-badge badge-pink">♥</span>
+          <span class="pixel-badge badge-orange">!</span>
+          <span class="pixel-badge badge-green">✓</span>
+        </div>
+
+        <div class="form-grid">
+          <label class="field-card">
+            <span class="field-label">難度</span>
+            <select id="difficulty-select">
+              <option value="easy">簡單｜輕鬆練習</option>
+              <option value="normal" selected>普通｜標準對戰</option>
+              <option value="hard">困難｜快速反應</option>
+              <option value="boss">Boss｜極限挑戰</option>
+            </select>
+          </label>
+
+          <label class="field-card">
+            <span class="field-label">球桌色彩</span>
+            <select id="theme-select">
+              <option value="steampunk" selected>金色桌面</option>
+              <option value="copper">蜜桃橘</option>
+              <option value="royal">檸檬黃</option>
+              <option value="coal">深色像素</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="switches">
+          <button id="sound-toggle" class="toggle active">音效 ON</button>
+          <button id="vibration-toggle" class="toggle active">震動 ON</button>
+        </div>
+
+        <div class="record-card">
+          <span>🏆 DESKTOP RECORD</span>
+          <strong>最高勝場：<span id="best-win">0</span></strong>
+        </div>
+
+        <button id="start-button" class="primary">▶ 開始遊戲</button>
+
+        <div class="status-bar">
+          <span>READY</span>
+          <span>TOUCH / MOUSE</span>
+          <span>7 POINTS WIN</span>
+        </div>
+      </div>
     </div>
   </section>
 
   <section id="countdown" class="overlay transparent">
-    <div id="countdown-text">3</div>
+    <div class="countdown-window pixel-window">
+      <div class="window-titlebar mini-titlebar"><strong>LOADING...</strong></div>
+      <div id="countdown-text">3</div>
+      <div class="loading-track"><span></span></div>
+    </div>
   </section>
 
   <section id="pause" class="overlay">
-    <div class="panel">
-      <h2>暫停中</h2>
-      <button id="resume-button" class="primary">繼續</button>
-      <button id="back-menu-button">回首頁</button>
+    <div class="panel pixel-window small-window">
+      <div class="window-titlebar warning-titlebar">
+        <span class="window-icon">Ⅱ</span>
+        <strong>PAUSE.DLG</strong>
+        <div class="window-actions" aria-hidden="true"><span>×</span></div>
+      </div>
+      <div class="window-content">
+        <div class="dialog-icon">!</div>
+        <h2>暫停中</h2>
+        <p class="desc">遊戲目前已暫停，球桌會保留在原本的位置。</p>
+        <button id="resume-button" class="primary">▶ 繼續遊戲</button>
+        <button id="back-menu-button">⌂ 回首頁</button>
+      </div>
     </div>
   </section>
 
   <section id="game-over" class="overlay">
-    <div class="panel">
-      <p class="eyebrow">Result</p>
-      <h2 id="winner-text">遊戲結束</h2>
-      <p id="final-score"></p>
-      <button id="restart-button" class="primary">再玩一次</button>
-      <button id="home-button">回首頁</button>
+    <div class="panel pixel-window small-window">
+      <div class="window-titlebar result-titlebar">
+        <span class="window-icon">★</span>
+        <strong>RESULT.TXT</strong>
+        <div class="window-actions" aria-hidden="true"><span>×</span></div>
+      </div>
+      <div class="window-content">
+        <p class="eyebrow">GAME RESULT</p>
+        <h2 id="winner-text">遊戲結束</h2>
+        <p id="final-score" class="final-score"></p>
+        <button id="restart-button" class="primary">↻ 再玩一次</button>
+        <button id="home-button">⌂ 回首頁</button>
+      </div>
     </div>
   </section>
 

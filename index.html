@@ -3,81 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#b9d8ef" />
+  <meta name="theme-color" content="#9adcf5" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>像素桌面空氣曲棍球 v1.5</title>
+  <title>泡泡島空氣曲棍球 v2.0</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=1.5" />
-  <link rel="stylesheet" href="auth.css?v=1.5" />
+  <link rel="stylesheet" href="style.css?v=2.0" />
 </head>
 <body>
-  <div class="desktop-shortcuts" aria-hidden="true">
-    <div class="shortcut shortcut-star"><span>✦</span><small>POWER</small></div>
-    <div class="shortcut shortcut-heart"><span>♥</span><small>PLAYER</small></div>
-    <div class="shortcut shortcut-music"><span>♫</span><small>MUSIC</small></div>
-    <div class="shortcut shortcut-mail"><span>✉</span><small>MAIL</small></div>
-  </div>
-
-  <div id="hud" class="pixel-window hud-window">
-    <div class="hud-titlebar"><span class="hud-dot"></span><span>HOCKEY_STATUS.EXE</span><button id="pause-btn" aria-label="暫停">Ⅱ</button></div>
-    <div class="hud-content"><div id="score-board"><span id="ai-score">AI 0</span><span class="score-divider">★</span><span id="player-score">YOU 0</span></div><div id="mini-stats"><span id="speed-label">0 km/h</span><span id="combo-label">COMBO x0</span></div></div>
-  </div>
-
   <canvas id="gameCanvas"></canvas>
 
-  <section id="auth-screen" class="overlay active auth-overlay">
-    <div class="panel pixel-window auth-window">
-      <div class="window-titlebar"><span class="window-icon">☺</span><strong>PLAYER_LOGIN.EXE</strong><div class="window-actions" aria-hidden="true"><span>×</span></div></div>
-      <div class="window-content">
-        <p class="eyebrow">WELCOME PLAYER / v1.5</p>
-        <h1>登入像素球場</h1>
-        <p class="desc">訪客可立即遊玩；Google 登入可在之後保存名稱、戰績與排名。</p>
-        <div class="login-avatar">🙂</div>
-        <button id="guest-login-btn" class="primary auth-btn">👤 訪客登入</button>
-        <button id="google-login-btn" class="google-btn auth-btn"><span class="google-mark">G</span> 使用 Google 登入</button>
-        <p id="auth-message" class="auth-message">選擇登入方式以繼續</p>
-      </div>
+  <div id="hud" class="hud-card">
+    <div class="hud-player hud-ai"><span class="hud-avatar">🐡</span><div><small>RIVAL</small><strong id="ai-score">AI 0</strong></div></div>
+    <div class="hud-center"><span id="speed-label">0 km/h</span><b>VS</b><span id="combo-label">COMBO x0</span></div>
+    <div class="hud-player hud-you"><div><small>YOU</small><strong id="player-score">YOU 0</strong></div><span class="hud-avatar">🐙</span></div>
+    <button id="pause-btn" aria-label="暫停">Ⅱ</button>
+  </div>
+
+  <section id="auth-screen" class="overlay active">
+    <div class="card auth-card">
+      <div class="mascot-bubble">🐙</div>
+      <p class="kicker">BUBBLE ISLAND / v2.0</p>
+      <h1>泡泡島曲棍球</h1>
+      <p class="lead">登入後進入柔和手繪的海底球場，和 AI 或其他玩家對戰。</p>
+      <button id="guest-login-btn" class="btn btn-primary">👤 訪客登入</button>
+      <button id="google-login-btn" class="btn btn-google"><span class="google-mark">G</span> 使用 Google 登入</button>
+      <p id="auth-message" class="hint">選擇登入方式以繼續</p>
     </div>
   </section>
 
   <section id="menu" class="overlay">
-    <div class="panel pixel-window menu-window">
-      <div class="window-titlebar"><span class="window-icon">★</span><strong>PIXEL_HOCKEY.EXE</strong><div class="window-actions" aria-hidden="true"><span>─</span><span>□</span><span>×</span></div></div>
-      <div class="window-content">
-        <div class="player-strip"><span id="player-avatar">🙂</span><div><small>目前玩家</small><strong id="player-name">訪客</strong></div><button id="logout-btn" class="mini-btn">登出</button></div>
-        <p class="eyebrow">PIXEL DESKTOP EDITION / v1.5</p>
-        <h1>像素桌面曲棍球</h1>
-        <p class="desc">選擇單人挑戰，或進入快速配對等待其他玩家。</p>
-        <div class="pixel-banner" aria-hidden="true"><span class="pixel-badge badge-teal">●</span><span class="pixel-badge badge-yellow">✦</span><span class="pixel-badge badge-pink">♥</span><span class="pixel-badge badge-orange">!</span><span class="pixel-badge badge-green">✓</span></div>
-        <div class="form-grid">
-          <label class="field-card"><span class="field-label">難度</span><select id="difficulty-select"><option value="easy">簡單｜輕鬆練習</option><option value="normal" selected>普通｜標準對戰</option><option value="hard">困難｜快速反應</option><option value="boss">Boss｜極限挑戰</option></select></label>
-          <label class="field-card"><span class="field-label">球桌色彩</span><select id="theme-select"><option value="steampunk" selected>金色桌面</option><option value="copper">蜜桃橘</option><option value="royal">檸檬黃</option><option value="coal">深色像素</option></select></label>
-        </div>
-        <div class="switches"><button id="sound-toggle" class="toggle active">音效 ON</button><button id="vibration-toggle" class="toggle active">震動 ON</button></div>
-        <div class="record-card"><span>🏆 DESKTOP RECORD</span><strong>最高勝場：<span id="best-win">0</span></strong></div>
-        <div class="mode-buttons"><button id="quick-match-btn" class="match-btn">🌐 快速配對</button><button id="start-button" class="primary">▶ 單人對戰</button></div>
-        <div class="status-bar"><span>ONLINE READY</span><span>TOUCH / MOUSE</span><span>7 POINTS WIN</span></div>
+    <div class="card menu-card">
+      <div class="player-strip"><span id="player-avatar">🙂</span><div><small>目前玩家</small><strong id="player-name">訪客</strong></div><button id="logout-btn" class="chip-btn">登出</button></div>
+      <div class="hero-scene"><span class="cloud cloud-a"></span><span class="cloud cloud-b"></span><span class="hero-fish">🐠</span><span class="hero-octo">🐙</span><span class="hero-star">⭐</span></div>
+      <p class="kicker">HAND-DRAWN CARTOON EDITION</p>
+      <h1>泡泡島曲棍球</h1>
+      <p class="lead">先拿到 7 分就獲勝。拖曳你的角色球拍，把泡泡球打進對方洞口。</p>
+
+      <div class="option-grid">
+        <label><span>挑戰難度</span><select id="difficulty-select"><option value="easy">輕鬆小魚</option><option value="normal" selected>活力海豚</option><option value="hard">迅捷鯊魚</option><option value="boss">深海魔王</option></select></label>
+        <label><span>冒險世界</span><select id="theme-select"><option value="ocean" selected>珊瑚海灣</option><option value="desert">糖果沙漠</option><option value="village">雲朵小鎮</option><option value="night">星光深海</option></select></label>
       </div>
+
+      <div class="switches"><button id="sound-toggle" class="chip-btn active">🔊 音效 ON</button><button id="vibration-toggle" class="chip-btn active">📳 震動 ON</button></div>
+      <div class="record-card"><span>🏆 最高勝場</span><strong id="best-win">0</strong></div>
+      <div class="mode-buttons"><button id="quick-match-btn" class="btn btn-online">🌐 快速配對</button><button id="start-button" class="btn btn-primary">▶ 單人冒險</button></div>
     </div>
   </section>
 
   <section id="match-screen" class="overlay">
-    <div class="panel pixel-window small-window">
-      <div class="window-titlebar"><span class="window-icon">🌐</span><strong>MATCHMAKING.EXE</strong></div>
-      <div class="window-content">
-        <div class="match-spinner">✦</div><h2>尋找對手中</h2><p id="match-status" class="desc">正在加入快速配對佇列…</p><p class="queue-time">等待時間 <strong id="queue-time">00:00</strong></p><button id="cancel-match-btn">取消配對</button>
-      </div>
-    </div>
+    <div class="card dialog-card"><div class="match-spinner">🐟</div><h2>尋找對手中</h2><p id="match-status" class="lead">正在游進快速配對佇列…</p><div class="queue-pill">等待時間 <strong id="queue-time">00:00</strong></div><button id="cancel-match-btn" class="btn btn-secondary">取消配對</button></div>
   </section>
 
-  <section id="countdown" class="overlay transparent"><div class="countdown-window pixel-window"><div class="window-titlebar mini-titlebar"><strong>LOADING...</strong></div><div id="countdown-text">3</div><div class="loading-track"><span></span></div></div></section>
-  <section id="pause" class="overlay"><div class="panel pixel-window small-window"><div class="window-titlebar warning-titlebar"><span class="window-icon">Ⅱ</span><strong>PAUSE.DLG</strong><div class="window-actions" aria-hidden="true"><span>×</span></div></div><div class="window-content"><div class="dialog-icon">!</div><h2>暫停中</h2><p class="desc">遊戲目前已暫停，球桌會保留在原本的位置。</p><button id="resume-button" class="primary">▶ 繼續遊戲</button><button id="back-menu-button">⌂ 回首頁</button></div></div></section>
-  <section id="game-over" class="overlay"><div class="panel pixel-window small-window"><div class="window-titlebar result-titlebar"><span class="window-icon">★</span><strong>RESULT.TXT</strong><div class="window-actions" aria-hidden="true"><span>×</span></div></div><div class="window-content"><p class="eyebrow">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="final-score"></p><button id="restart-button" class="primary">↻ 再玩一次</button><button id="home-button">⌂ 回首頁</button></div></div></section>
+  <section id="countdown" class="overlay transparent"><div class="countdown-card"><small>READY?</small><div id="countdown-text">3</div><div class="bubble-row">○ ◌ ○ ◌ ○</div></div></section>
+
+  <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🐚</div><h2>先休息一下</h2><p class="lead">球場已經暫停，回來時會從原本的位置繼續。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
+
+  <section id="game-over" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🏆</div><p class="kicker">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="score-result"></p><button id="restart-button" class="btn btn-primary">↻ 再玩一次</button><button id="home-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth.js?v=1.5"></script>
-  <script src="game.js?v=1.5"></script>
-  <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));</script>
+  <script src="game.js?v=2.0"></script>
+  <script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));</script>
 </body>
 </html>

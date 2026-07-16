@@ -1,11 +1,11 @@
-const CACHE_NAME = "pixel-air-hockey-v1-5";
+const CACHE_NAME = "bubble-island-air-hockey-v2-1";
 const ASSETS = [
   "./",
   "./index.html",
-  "./style.css?v=1.5",
-  "./auth.css?v=1.5",
-  "./auth.js?v=1.5",
-  "./game.js?v=1.5",
+  "./style.css?v=2.1",
+  "./guest.css?v=2.1",
+  "./auth.js?v=2.1",
+  "./game.js?v=2.0",
   "./manifest.json",
   "./icon.svg"
 ];

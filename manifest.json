@@ -1,11 +1,11 @@
 {
-  "name": "蒸氣龐克曲棍球 v1.1",
-  "short_name": "Steam Hockey",
-  "description": "手機直向蒸氣龐克風格空氣曲棍球小遊戲，加入進階震動回饋",
+  "name": "像素桌面空氣曲棍球 v1.4.1",
+  "short_name": "Pixel Hockey",
+  "description": "復古可愛像素桌面風格的手機空氣曲棍球遊戲",
   "start_url": "./index.html",
   "display": "fullscreen",
-  "background_color": "#120b05",
-  "theme_color": "#120b05",
+  "background_color": "#cfe4f4",
+  "theme_color": "#b9d8ef",
   "orientation": "portrait",
   "icons": [
     {

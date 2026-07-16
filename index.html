@@ -6,13 +6,15 @@
   <meta name="theme-color" content="#9adcf5" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>泡泡島空氣曲棍球 v2.1</title>
+  <title>泡泡島空氣曲棍球 v2.2</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=2.1" />
-  <link rel="stylesheet" href="guest.css?v=2.1" />
+  <link rel="stylesheet" href="style.css?v=2.2" />
+  <link rel="stylesheet" href="guest.css?v=2.2" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
+
+  <button id="fullscreen-toggle" class="fullscreen-toggle" aria-label="切換全螢幕" title="切換全螢幕">⛶</button>
 
   <div id="hud" class="hud-card">
     <div class="hud-player hud-ai"><span class="hud-avatar">🐡</span><div><small>RIVAL</small><strong id="ai-score">AI 0</strong></div></div>
@@ -24,9 +26,11 @@
   <section id="auth-screen" class="overlay active">
     <div class="card auth-card">
       <div class="mascot-bubble">🐙</div>
-      <p class="kicker">BUBBLE ISLAND / v2.1</p>
+      <p class="kicker">BUBBLE ISLAND / v2.2</p>
       <h1>歡迎來到泡泡島</h1>
       <p class="lead">先幫你的冒險角色取一個名字，再進入海底球場。</p>
+      <button id="enter-fullscreen-btn" class="btn btn-secondary fullscreen-entry">⛶ 全螢幕遊玩</button>
+      <p id="fullscreen-message" class="hint fullscreen-hint">點一下可隱藏瀏覽器工具列，遊玩畫面會更完整</p>
       <label class="name-field">
         <span>玩家名稱</span>
         <input id="guest-name-input" type="text" maxlength="12" autocomplete="nickname" placeholder="輸入 2～12 個字" />
@@ -60,6 +64,7 @@
   <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🐚</div><h2>先休息一下</h2><p class="lead">球場已經暫停，回來時會從原本的位置繼續。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
   <section id="game-over" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🏆</div><p class="kicker">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="score-result"></p><button id="restart-button" class="btn btn-primary">↻ 再玩一次</button><button id="home-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
 
+  <script src="fullscreen.js?v=2.2"></script>
   <script src="auth.js?v=2.1"></script>
   <script src="game.js?v=2.0"></script>
   <script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));</script>

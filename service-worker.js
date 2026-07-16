@@ -1,9 +1,9 @@
-const CACHE_NAME = "pixel-air-hockey-v1-4-1";
+const CACHE_NAME = "pixel-air-hockey-v1-4-2";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css?v=1.4.1",
-  "./game.js",
+  "./game.js?v=1.4.2",
   "./manifest.json",
   "./icon.svg"
 ];

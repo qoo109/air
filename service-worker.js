@@ -1,8 +1,8 @@
-const CACHE_NAME = "steampunk-air-hockey-v1-1";
+const CACHE_NAME = "pixel-air-hockey-v1-4-1";
 const ASSETS = [
   "./",
   "./index.html",
-  "./style.css",
+  "./style.css?v=1.4.1",
   "./game.js",
   "./manifest.json",
   "./icon.svg"

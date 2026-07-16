@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#9adcf5" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>泡泡島空氣曲棍球 v2.0</title>
+  <title>泡泡島空氣曲棍球 v2.1</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=2.0" />
+  <link rel="stylesheet" href="style.css?v=2.1" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
@@ -23,18 +23,21 @@
   <section id="auth-screen" class="overlay active">
     <div class="card auth-card">
       <div class="mascot-bubble">🐙</div>
-      <p class="kicker">BUBBLE ISLAND / v2.0</p>
-      <h1>泡泡島曲棍球</h1>
-      <p class="lead">登入後進入柔和手繪的海底球場，和 AI 或其他玩家對戰。</p>
-      <button id="guest-login-btn" class="btn btn-primary">👤 訪客登入</button>
-      <button id="google-login-btn" class="btn btn-google"><span class="google-mark">G</span> 使用 Google 登入</button>
-      <p id="auth-message" class="hint">選擇登入方式以繼續</p>
+      <p class="kicker">BUBBLE ISLAND / v2.1</p>
+      <h1>歡迎來到泡泡島</h1>
+      <p class="lead">先幫你的冒險角色取一個名字，再進入海底球場。</p>
+      <label class="name-field">
+        <span>玩家名稱</span>
+        <input id="guest-name-input" type="text" maxlength="12" autocomplete="nickname" placeholder="輸入 2～12 個字" />
+      </label>
+      <button id="guest-login-btn" class="btn btn-primary">🌊 進入泡泡島</button>
+      <p id="auth-message" class="hint">名稱會儲存在這台裝置中</p>
     </div>
   </section>
 
   <section id="menu" class="overlay">
     <div class="card menu-card">
-      <div class="player-strip"><span id="player-avatar">🙂</span><div><small>目前玩家</small><strong id="player-name">訪客</strong></div><button id="logout-btn" class="chip-btn">登出</button></div>
+      <div class="player-strip"><span id="player-avatar">🐙</span><div><small>目前玩家</small><strong id="player-name">玩家</strong></div><button id="logout-btn" class="chip-btn">更換名字</button></div>
       <div class="hero-scene"><span class="cloud cloud-a"></span><span class="cloud cloud-b"></span><span class="hero-fish">🐠</span><span class="hero-octo">🐙</span><span class="hero-star">⭐</span></div>
       <p class="kicker">HAND-DRAWN CARTOON EDITION</p>
       <h1>泡泡島曲棍球</h1>
@@ -51,18 +54,12 @@
     </div>
   </section>
 
-  <section id="match-screen" class="overlay">
-    <div class="card dialog-card"><div class="match-spinner">🐟</div><h2>尋找對手中</h2><p id="match-status" class="lead">正在游進快速配對佇列…</p><div class="queue-pill">等待時間 <strong id="queue-time">00:00</strong></div><button id="cancel-match-btn" class="btn btn-secondary">取消配對</button></div>
-  </section>
-
+  <section id="match-screen" class="overlay"><div class="card dialog-card"><div class="match-spinner">🐟</div><h2>尋找對手中</h2><p id="match-status" class="lead">正在游進快速配對佇列…</p><div class="queue-pill">等待時間 <strong id="queue-time">00:00</strong></div><button id="cancel-match-btn" class="btn btn-secondary">取消配對</button></div></section>
   <section id="countdown" class="overlay transparent"><div class="countdown-card"><small>READY?</small><div id="countdown-text">3</div><div class="bubble-row">○ ◌ ○ ◌ ○</div></div></section>
-
   <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🐚</div><h2>先休息一下</h2><p class="lead">球場已經暫停，回來時會從原本的位置繼續。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
-
   <section id="game-over" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🏆</div><p class="kicker">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="score-result"></p><button id="restart-button" class="btn btn-primary">↻ 再玩一次</button><button id="home-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth.js?v=1.5"></script>
+  <script src="auth.js?v=2.1"></script>
   <script src="game.js?v=2.0"></script>
   <script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));</script>
 </body>

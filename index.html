@@ -9,9 +9,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>泡泡島空氣曲棍球 v2.4</title>
-  <link rel="manifest" href="manifest.json?v=2.4" />
-  <link rel="stylesheet" href="bubble-ui-v24.css" />
+  <title>泡泡島空氣曲棍球 v2.5</title>
+  <link rel="manifest" href="manifest.json?v=2.5" />
+  <link rel="stylesheet" href="bubble-ui-v24.css?v=2.5" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
@@ -27,7 +27,7 @@
   <section id="auth-screen" class="overlay active">
     <div class="card auth-card">
       <div class="mascot-bubble">🐙</div>
-      <p class="kicker">BUBBLE ISLAND / v2.4</p>
+      <p class="kicker">BUBBLE ISLAND / v2.5</p>
       <h1>歡迎來到泡泡島</h1>
       <p class="lead">先幫你的冒險角色取一個名字，再進入海底球場。</p>
       <button id="enter-fullscreen-btn" class="btn btn-secondary fullscreen-entry">⛶ 全螢幕遊玩</button>
@@ -47,7 +47,7 @@
       <div class="hero-scene"><span class="cloud cloud-a"></span><span class="cloud cloud-b"></span><span class="hero-fish">🐠</span><span class="hero-octo">🐙</span><span class="hero-star">⭐</span></div>
       <p class="kicker">HAND-DRAWN CARTOON EDITION</p>
       <h1>泡泡島曲棍球</h1>
-      <p class="lead">先拿到 7 分就獲勝。拖曳你的角色球拍，把泡泡球打進對方洞口。</p>
+      <p class="lead">先拿到 7 分就獲勝。拖曳你的章魚球拍，把珍珠泡泡打進對方洞口。</p>
       <div class="option-grid">
         <label><span>挑戰難度</span><select id="difficulty-select"><option value="easy">輕鬆小魚</option><option value="normal" selected>活力海豚</option><option value="hard">迅捷鯊魚</option><option value="boss">深海魔王</option></select></label>
         <label><span>冒險世界</span><select id="theme-select"><option value="ocean" selected>珊瑚海灣</option><option value="desert">糖果沙漠</option><option value="village">雲朵小鎮</option><option value="night">星光深海</option></select></label>
@@ -77,8 +77,8 @@
       } catch (_) {}
     })();
   </script>
-  <script src="fullscreen.js?v=2.4"></script>
-  <script src="auth.js?v=2.4"></script>
-  <script src="game.js?v=2.4"></script>
+  <script src="fullscreen.js?v=2.5"></script>
+  <script src="auth.js?v=2.5"></script>
+  <script src="bubble-game-v25.js"></script>
 </body>
 </html>

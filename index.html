@@ -9,12 +9,13 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>泡泡島空氣曲棍球 v4.0.3</title>
-  <link rel="manifest" href="manifest.json?v=4.0.3" />
-  <link rel="stylesheet" href="bubble-ui-v24.css?v=4.0.3" />
-  <link rel="stylesheet" href="bubble-patch-v30.css?v=4.0.3" />
-  <link rel="stylesheet" href="bubble-patch-v31.css?v=4.0.3" />
-  <link rel="stylesheet" href="multiplayer-v40.css?v=4.0.3" />
+  <title>泡泡島空氣曲棍球 v4.0.4</title>
+  <link rel="manifest" href="manifest.json?v=4.0.4" />
+  <link rel="stylesheet" href="bubble-ui-v24.css?v=4.0.4" />
+  <link rel="stylesheet" href="bubble-patch-v30.css?v=4.0.4" />
+  <link rel="stylesheet" href="bubble-patch-v31.css?v=4.0.4" />
+  <link rel="stylesheet" href="multiplayer-v40.css?v=4.0.4" />
+  <link rel="stylesheet" href="multiplayer-v404.css?v=4.0.4" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
@@ -34,7 +35,7 @@
   <section id="auth-screen" class="overlay active">
     <div class="card auth-card">
       <div class="mascot-bubble">🐢</div>
-      <p class="kicker">BUBBLE ISLAND / v4.0.3</p>
+      <p class="kicker">BUBBLE ISLAND / v4.0.4</p>
       <h1>歡迎來到泡泡島</h1>
       <p class="lead">先幫你的冒險角色取一個名字，再進入海底球場。</p>
       <button id="enter-fullscreen-btn" class="btn btn-secondary fullscreen-entry">⛶ 進入全螢幕</button>
@@ -58,9 +59,9 @@
       </div>
       <button id="leaderboard-btn" class="btn btn-secondary rank-open-btn">🏆 查看排行榜</button>
       <div class="hero-scene"><span class="cloud cloud-a"></span><span class="cloud cloud-b"></span><span class="hero-fish">🐠</span><span class="hero-octo">🐢</span><span class="hero-star">🌀</span></div>
-      <p class="kicker">REALTIME MATCH BETA</p>
+      <p class="kicker">REALTIME MATCH STABLE BETA</p>
       <h1>泡泡島曲棍球</h1>
-      <p class="lead">單人冒險或真人快速配對。真人模式會自動把最早等待的兩位玩家配成一場，不需要房間碼。</p>
+      <p class="lead">單人冒險或真人快速配對。真人模式會等雙方完成即時握手後才一起倒數開局。</p>
       <div class="option-grid">
         <label><span>挑戰難度</span><select id="difficulty-select"><option value="easy">輕鬆小魚</option><option value="normal" selected>活力海豚</option><option value="hard">迅捷鯊魚</option><option value="boss">深海魔王</option></select></label>
         <label><span>冒險世界</span><select id="theme-select"><option value="ocean" selected>珊瑚海灣</option><option value="desert">糖果沙漠</option><option value="village">雲朵小鎮</option><option value="night">星光深海</option></select></label>
@@ -87,7 +88,7 @@
       </div>
       <p id="leaderboard-status" class="leaderboard-status">這台裝置上的玩家紀錄</p>
       <ol id="leaderboard-list" class="rank-list"></ol>
-      <p class="rank-note">全球榜使用訪客匿名帳號；正式競技版仍需伺服器驗證防作弊。</p>
+      <p class="rank-note">全球榜使用訪客匿名帳號；真人模式目前仍是公開 Realtime 測試頻道。</p>
     </div>
   </section>
 
@@ -111,13 +112,14 @@
   <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🌀</div><h2>先休息一下</h2><p class="lead">球場已暫停。按下繼續後會先倒數 2、1、GO，避免突然被進球。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="pause-fullscreen-btn" class="btn btn-secondary pause-fullscreen-btn">⛶ 進入全螢幕</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
   <section id="game-over" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🏆</div><p class="kicker">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="score-result"></p><button id="restart-button" class="btn btn-primary">↻ 再玩一次</button><button id="home-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
 
-  <script src="fullscreen-v28.js?v=4.0.3"></script>
+  <script src="fullscreen-v28.js?v=4.0.4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.91.0/dist/umd/supabase.min.js"></script>
-  <script src="realtime-public-patch-v402.js?v=4.0.3"></script>
-  <script src="cloud-config.js?v=4.0.3"></script>
-  <script src="ranking-v30.js?v=4.0.3"></script>
-  <script src="auth-v40.js?v=4.0.3"></script>
-  <script src="bubble-game-v31.js?v=4.0.3"></script>
-  <script src="multiplayer-v40.js?v=4.0.3"></script>
+  <script src="realtime-public-patch-v402.js?v=4.0.4"></script>
+  <script src="cloud-config.js?v=4.0.4"></script>
+  <script src="realtime-hello-throttle-v404.js?v=4.0.4"></script>
+  <script src="ranking-v30.js?v=4.0.4"></script>
+  <script src="auth-v40.js?v=4.0.4"></script>
+  <script src="bubble-game-v31.js?v=4.0.4"></script>
+  <script src="multiplayer-v404.js?v=4.0.4"></script>
 </body>
 </html>

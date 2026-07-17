@@ -10,20 +10,24 @@
   const closeButton=$('leaderboard-close-btn');
   const tabs=[...document.querySelectorAll('[data-board]')];
   let activeBoard='streak';
+  let cache=null;
 
   const cleanName=value=>String(value||'玩家').replace(/\s+/g,' ').trim().slice(0,12)||'玩家';
 
   function load(){
+    if(cache) return cache;
     try{
       const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
-      return Array.isArray(value)?value:[];
+      cache=Array.isArray(value)?value:[];
     }catch(_){
-      return [];
+      cache=[];
     }
+    return cache;
   }
 
   function save(records){
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(records.slice(0,100)));
+    cache=records.slice(0,100);
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(cache));
   }
 
   function currentName(){

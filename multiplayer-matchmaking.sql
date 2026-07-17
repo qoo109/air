@@ -1,5 +1,6 @@
--- Bubble Island quick matchmaking + private realtime channels (v4.0)
+-- Bubble Island quick matchmaking + private realtime channels (v4.0.1)
 -- Run once in Supabase SQL Editor.
+-- Note: realtime.messages already has RLS enabled by Supabase.
 
 create extension if not exists pgcrypto;
 
@@ -44,6 +45,9 @@ drop policy if exists "players can read own queue row" on public.quick_match_que
 create policy "players can read own queue row"
 on public.quick_match_queue for select to authenticated
 using (auth.uid() = user_id);
+
+grant select on public.quick_matches to authenticated;
+grant select on public.quick_match_queue to authenticated;
 
 create or replace function public.join_quick_match(p_player_name text)
 returns table(match_id uuid, player_role text, opponent_name text, match_status text)
@@ -191,16 +195,16 @@ grant execute on function public.cancel_quick_match() to authenticated;
 grant execute on function public.start_quick_match(uuid) to authenticated;
 grant execute on function public.finish_quick_match(uuid,integer,integer) to authenticated;
 
-alter table realtime.messages enable row level security;
-
+-- Supabase already owns and protects realtime.messages.
+-- Only create the channel authorization policies below.
 drop policy if exists "match players receive game broadcasts" on realtime.messages;
 create policy "match players receive game broadcasts"
 on realtime.messages for select to authenticated
 using (
   exists (
     select 1 from public.quick_matches m
-    where realtime.topic() = 'game:' || m.id::text || ':play'
-      and (m.host_user_id=auth.uid() or m.guest_user_id=auth.uid())
+    where (select realtime.topic()) = 'game:' || m.id::text || ':play'
+      and (m.host_user_id=(select auth.uid()) or m.guest_user_id=(select auth.uid()))
       and m.status in ('matched','playing')
   )
 );
@@ -211,8 +215,8 @@ on realtime.messages for insert to authenticated
 with check (
   exists (
     select 1 from public.quick_matches m
-    where realtime.topic() = 'game:' || m.id::text || ':play'
-      and (m.host_user_id=auth.uid() or m.guest_user_id=auth.uid())
+    where (select realtime.topic()) = 'game:' || m.id::text || ':play'
+      and (m.host_user_id=(select auth.uid()) or m.guest_user_id=(select auth.uid()))
       and m.status in ('matched','playing')
   )
 );

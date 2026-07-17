@@ -1,0 +1,18 @@
+/* Bubble Island multiplayer performance patch v4.0.7 */
+html,body{overscroll-behavior:none}
+body.multiplayer-running{overflow:hidden;touch-action:none;background:#86dcf4}
+body.multiplayer-running #gameCanvas{
+  position:fixed;
+  inset:0;
+  display:block;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  image-rendering:auto;
+  contain:strict;
+  transform:translateZ(0);
+  backface-visibility:hidden;
+}
+body.multiplayer-running .overlay:not(#countdown):not(#game-over){pointer-events:none}
+body.multiplayer-running #hud{will-change:transform;transform:translateZ(0)}

@@ -1,0 +1,14 @@
+body.multiplayer-pending #hud{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+body.multiplayer-pending #gameCanvas{filter:saturate(.82) brightness(.96)}
+body.multiplayer-running #hud{opacity:1!important;visibility:visible!important}
+body.multiplayer-running #gameCanvas{filter:none}
+#match-screen{z-index:64}
+#countdown{z-index:70}
+#game-over{z-index:72}
+#match-screen .dialog-card{position:relative;overflow:hidden}
+#match-screen .dialog-card::before{content:"";position:absolute;inset:-45% -20% auto;height:180px;background:radial-gradient(circle,rgba(154,220,245,.5),transparent 68%);pointer-events:none}
+#match-status{position:relative;min-height:48px;display:grid;place-items:center}
+#match-ai-fallback-btn[data-action="retry"]{background:linear-gradient(#ffe8aa,#ffd15c)}
+#match-ai-fallback-btn[data-action="ai"]{background:linear-gradient(#e7f7ff,#a8def5)}
+.multiplayer-running #pause-btn{background:#ffe8e1;color:#a6403d}
+@media(max-width:520px){#match-screen .dialog-card{width:min(430px,94vw)}#match-status{font-size:14px;line-height:1.45}}

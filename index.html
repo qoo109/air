@@ -9,17 +9,22 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>泡泡島空氣曲棍球 v2.8</title>
-  <link rel="manifest" href="manifest.json?v=2.8" />
-  <link rel="stylesheet" href="bubble-ui-v24.css?v=2.8" />
-  <link rel="stylesheet" href="bubble-patch-v28.css" />
+  <title>泡泡島空氣曲棍球 v2.9</title>
+  <link rel="manifest" href="manifest.json?v=2.9" />
+  <link rel="stylesheet" href="bubble-ui-v24.css?v=2.9" />
+  <link rel="stylesheet" href="bubble-patch-v29.css" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
 
   <div id="hud" class="hud-card">
     <div class="hud-player hud-ai"><span class="hud-avatar">🌀</span><div><small>RIVAL</small><strong id="ai-score">AI 0</strong></div></div>
-    <div class="hud-center"><span id="speed-label">0 km/h</span><b>VS</b><span id="combo-label">連擊 x0</span><span id="best-combo-hud" class="hud-best">最佳 x0</span></div>
+    <div class="hud-center">
+      <span id="speed-label">0 km/h</span><b>VS</b>
+      <span id="combo-label">連擊 x0</span>
+      <span id="best-combo-hud" class="hud-best">最佳 x0</span>
+      <span id="win-streak-hud" class="hud-streak">連勝 x0</span>
+    </div>
     <div class="hud-player hud-you"><div><small>YOU</small><strong id="player-score">YOU 0</strong></div><span class="hud-avatar">🐢</span></div>
     <button id="pause-btn" aria-label="暫停">Ⅱ</button>
   </div>
@@ -27,7 +32,7 @@
   <section id="auth-screen" class="overlay active">
     <div class="card auth-card">
       <div class="mascot-bubble">🐢</div>
-      <p class="kicker">BUBBLE ISLAND / v2.8</p>
+      <p class="kicker">BUBBLE ISLAND / v2.9</p>
       <h1>歡迎來到泡泡島</h1>
       <p class="lead">先幫你的冒險角色取一個名字，再進入海底球場。</p>
       <button id="enter-fullscreen-btn" class="btn btn-secondary fullscreen-entry">⛶ 進入全螢幕</button>
@@ -44,13 +49,15 @@
     <div class="card menu-card">
       <div class="player-strip"><span id="player-avatar">🐢</span><div><small>目前玩家</small><strong id="player-name">玩家</strong></div><button id="logout-btn" class="chip-btn">更換名字</button></div>
       <div class="record-grid top-records">
-        <div class="record-card"><span>🏆 最高勝場</span><strong id="best-win">0</strong></div>
+        <div class="record-card"><span>🏆 總勝場</span><strong id="best-win">0</strong></div>
+        <div class="record-card"><span>🔥 最佳連勝</span><strong id="best-streak">0</strong></div>
         <div class="record-card"><span>⚡ 最高連擊</span><strong id="best-combo">0</strong></div>
       </div>
+      <button id="leaderboard-btn" class="btn btn-secondary rank-open-btn">🏆 查看排行榜</button>
       <div class="hero-scene"><span class="cloud cloud-a"></span><span class="cloud cloud-b"></span><span class="hero-fish">🐠</span><span class="hero-octo">🐢</span><span class="hero-star">🌀</span></div>
-      <p class="kicker">ROUND SHELL EDITION</p>
+      <p class="kicker">LOCAL RANKING EDITION</p>
       <h1>泡泡島曲棍球</h1>
-      <p class="lead">先拿到 7 分就獲勝。拖曳加大的龜殼球拍，把珍珠打進螺旋貝殼對手的球門。</p>
+      <p class="lead">先拿到 7 分就獲勝。球門已稍微縮窄，防守與瞄準會更重要。</p>
       <div class="option-grid">
         <label><span>挑戰難度</span><select id="difficulty-select"><option value="easy">輕鬆小魚</option><option value="normal" selected>活力海豚</option><option value="hard">迅捷鯊魚</option><option value="boss">深海魔王</option></select></label>
         <label><span>冒險世界</span><select id="theme-select"><option value="ocean" selected>珊瑚海灣</option><option value="desert">糖果沙漠</option><option value="village">雲朵小鎮</option><option value="night">星光深海</option></select></label>
@@ -60,13 +67,23 @@
     </div>
   </section>
 
+  <section id="leaderboard-screen" class="overlay">
+    <div class="card leaderboard-card">
+      <div class="leaderboard-head"><div><p class="kicker">LOCAL LEADERBOARD</p><h2 id="leaderboard-title">最佳連勝榜</h2></div><button id="leaderboard-close-btn" class="leaderboard-close" aria-label="關閉排行榜">✕</button></div>
+      <div class="rank-tabs"><button class="rank-tab active" data-board="streak">🔥 連勝榜</button><button class="rank-tab" data-board="combo">⚡ 連擊榜</button></div>
+      <ol id="leaderboard-list" class="rank-list"></ol>
+      <p class="rank-note">目前為本機排行榜；全球排行榜會在真人連線後端完成後開放。</p>
+    </div>
+  </section>
+
   <section id="match-screen" class="overlay"><div class="card dialog-card"><div class="match-spinner">🐟</div><h2>尋找對手中</h2><p id="match-status" class="lead">正在游進快速配對佇列…</p><div class="queue-pill">等待時間 <strong id="queue-time">00:00</strong></div><button id="cancel-match-btn" class="btn btn-secondary">取消配對</button></div></section>
   <section id="countdown" class="overlay transparent"><div class="countdown-card"><small>READY?</small><div id="countdown-text">3</div><div class="bubble-row">○ ◌ ○ ◌ ○</div></div></section>
   <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🌀</div><h2>先休息一下</h2><p class="lead">球場已暫停。全螢幕功能只放在這裡，不會遮住遊戲畫面。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="pause-fullscreen-btn" class="btn btn-secondary pause-fullscreen-btn">⛶ 進入全螢幕</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
   <section id="game-over" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🏆</div><p class="kicker">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="score-result"></p><button id="restart-button" class="btn btn-primary">↻ 再玩一次</button><button id="home-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
 
-  <script src="fullscreen-v28.js"></script>
-  <script src="auth-v28.js"></script>
-  <script src="bubble-game-v28.js"></script>
+  <script src="fullscreen-v28.js?v=2.9"></script>
+  <script src="ranking-v29.js"></script>
+  <script src="auth-v29.js"></script>
+  <script src="bubble-game-v29.js"></script>
 </body>
 </html>

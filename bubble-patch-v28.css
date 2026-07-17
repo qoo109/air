@@ -1,0 +1,60 @@
+.record-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:10px 0 14px;
+}
+.record-grid .record-card{
+  margin:0;
+  min-height:62px;
+  padding:10px 13px;
+}
+.menu-card .record-grid.top-records{
+  margin:0 0 13px;
+}
+.hud-center{
+  min-width:82px;
+}
+.hud-best{
+  display:block;
+  padding:2px 7px;
+  border-radius:999px;
+  background:rgba(255,215,90,.28);
+  font-size:9px;
+  font-weight:1000;
+  line-height:1.35;
+  white-space:nowrap;
+}
+.record-pulse{
+  animation:recordPulse .38s ease;
+}
+@keyframes recordPulse{
+  0%{transform:scale(1)}
+  45%{transform:scale(1.22)}
+  100%{transform:scale(1)}
+}
+.pause-fullscreen-btn[hidden],
+.fullscreen-entry[hidden]{
+  display:none!important;
+}
+#pause .dialog-card .btn{
+  margin-top:9px;
+}
+#pause .dialog-card .lead{
+  margin-bottom:12px;
+}
+@media(max-width:520px){
+  .record-grid{gap:8px}
+  .record-grid .record-card{
+    min-height:56px;
+    padding:9px 10px;
+    font-size:12px;
+  }
+  .record-grid .record-card strong{font-size:22px}
+  .hud-center{min-width:76px}
+  .hud-best{font-size:8px;padding:1px 5px}
+}
+@media(max-height:740px){
+  .menu-card .record-grid.top-records{margin-bottom:8px}
+  .record-grid .record-card{min-height:50px}
+}

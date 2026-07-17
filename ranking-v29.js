@@ -80,8 +80,10 @@
 
   function updateCombo(name,combo){
     const value=Math.max(0,Math.floor(Number(combo)||0));
+    const current=ensurePlayer(name);
+    if(value<=current.bestCombo) return current;
     return updateRecord(name,record=>{
-      if(value>record.bestCombo) record.bestCombo=value;
+      record.bestCombo=value;
     });
   }
 

@@ -24,18 +24,20 @@
     return {
       id: `guest-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
       name,
-      avatar: '🐙',
+      avatar: '🐢',
       provider: 'guest'
     };
   }
 
   function showMenu(user) {
-    localStorage.setItem('bubble_island_user', JSON.stringify(user));
-    playerName.textContent = user.name || '玩家';
-    playerAvatar.textContent = user.avatar || '🐙';
+    const normalizedUser = { ...user, avatar:'🐢' };
+    localStorage.setItem('bubble_island_user', JSON.stringify(normalizedUser));
+    playerName.textContent = normalizedUser.name || '玩家';
+    playerAvatar.textContent = '🐢';
     authScreen.classList.remove('active');
     matchScreen.classList.remove('active');
     menu.classList.add('active');
+    window.dispatchEvent(new CustomEvent('bubble-player-updated', { detail:normalizedUser }));
   }
 
   function submitName() {

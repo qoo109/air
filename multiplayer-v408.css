@@ -1,0 +1,68 @@
+/* Bubble Island WebRTC + safe HUD patch v4.0.8 */
+html,body{overscroll-behavior:none}
+body.multiplayer-running{
+  overflow:hidden;
+  touch-action:none;
+  background:#86dcf4;
+}
+body.multiplayer-running #gameCanvas{
+  position:fixed!important;
+  display:block;
+  max-width:none!important;
+  max-height:none!important;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  image-rendering:auto;
+  contain:layout paint size;
+  transform:translateZ(0);
+  backface-visibility:hidden;
+}
+body.multiplayer-running .overlay:not(#countdown):not(#game-over){pointer-events:none}
+body.multiplayer-running #hud{
+  top:max(8px,env(safe-area-inset-top))!important;
+  right:max(8px,env(safe-area-inset-right))!important;
+  left:max(8px,env(safe-area-inset-left))!important;
+  width:auto!important;
+  max-width:none!important;
+  transform:translateZ(0)!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 38px!important;
+  gap:6px!important;
+  padding:7px 8px!important;
+  border-radius:20px!important;
+  will-change:auto!important;
+}
+body.multiplayer-running #hud .hud-player{min-width:0;overflow:hidden}
+body.multiplayer-running #hud .hud-player div{min-width:0;overflow:hidden}
+body.multiplayer-running #hud .hud-player strong{
+  display:block;
+  max-width:28vw;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:14px;
+}
+body.multiplayer-running #hud .hud-avatar{font-size:24px}
+body.multiplayer-running #hud .hud-center{
+  min-width:68px;
+  line-height:1.05;
+}
+body.multiplayer-running #hud #speed-label{font-size:9px;white-space:nowrap}
+body.multiplayer-running #hud #combo-label,
+body.multiplayer-running #hud #best-combo-hud,
+body.multiplayer-running #hud #win-streak-hud{font-size:8px;white-space:nowrap}
+body.multiplayer-running #hud #pause-btn{width:36px;height:36px;min-width:36px}
+@media(max-width:430px){
+  body.multiplayer-running #hud{
+    grid-template-columns:minmax(0,1fr) 62px minmax(0,1fr) 34px!important;
+    gap:4px!important;
+    padding:6px!important;
+  }
+  body.multiplayer-running #hud .hud-player strong{max-width:24vw;font-size:12px}
+  body.multiplayer-running #hud .hud-player small{font-size:7px}
+  body.multiplayer-running #hud .hud-avatar{font-size:20px}
+  body.multiplayer-running #hud .hud-center{min-width:58px}
+  body.multiplayer-running #hud .hud-center b{font-size:13px}
+  body.multiplayer-running #hud #pause-btn{width:32px;height:32px;min-width:32px;border-width:2px}
+}

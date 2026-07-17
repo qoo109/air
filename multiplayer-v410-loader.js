@@ -3,6 +3,12 @@
 
   const status = document.getElementById('match-status');
   const quick = document.getElementById('quick-match-btn');
+  const originalQuickLabel = quick?.textContent || '🌐 真人快速配對';
+
+  if (quick) {
+    quick.disabled = true;
+    quick.textContent = '🌐 多人引擎載入中…';
+  }
 
   const replaceRequired = (source, from, to, label) => {
     if (!source.includes(from)) {
@@ -68,8 +74,12 @@
       .replace("speedLabel.textContent = latency > 0 ? `FAST ${latency}ms` : 'FAST'", "speedLabel.textContent = latency > 0 ? `LOCAL ${latency}ms` : 'LOCAL'")
       .replace("transport: () => 'realtime-fast'", "transport: () => 'realtime-local-prediction'");
 
-    // Execute the patched engine only after every required replacement succeeds.
     Function(`${source}\n//# sourceURL=multiplayer-v410-runtime.js`)();
+
+    if (quick) {
+      quick.disabled = false;
+      quick.textContent = originalQuickLabel;
+    }
   }
 
   boot().catch(error => {

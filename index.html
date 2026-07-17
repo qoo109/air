@@ -9,10 +9,11 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>泡泡島空氣曲棍球 v3.0</title>
-  <link rel="manifest" href="manifest.json?v=3.0" />
-  <link rel="stylesheet" href="bubble-ui-v24.css?v=3.0" />
-  <link rel="stylesheet" href="bubble-patch-v30.css" />
+  <title>泡泡島空氣曲棍球 v3.1</title>
+  <link rel="manifest" href="manifest.json?v=3.1" />
+  <link rel="stylesheet" href="bubble-ui-v24.css?v=3.1" />
+  <link rel="stylesheet" href="bubble-patch-v30.css?v=3.1" />
+  <link rel="stylesheet" href="bubble-patch-v31.css" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
@@ -32,7 +33,7 @@
   <section id="auth-screen" class="overlay active">
     <div class="card auth-card">
       <div class="mascot-bubble">🐢</div>
-      <p class="kicker">BUBBLE ISLAND / v3.0</p>
+      <p class="kicker">BUBBLE ISLAND / v3.1</p>
       <h1>歡迎來到泡泡島</h1>
       <p class="lead">先幫你的冒險角色取一個名字，再進入海底球場。</p>
       <button id="enter-fullscreen-btn" class="btn btn-secondary fullscreen-entry">⛶ 進入全螢幕</button>
@@ -56,9 +57,9 @@
       </div>
       <button id="leaderboard-btn" class="btn btn-secondary rank-open-btn">🏆 查看排行榜</button>
       <div class="hero-scene"><span class="cloud cloud-a"></span><span class="cloud cloud-b"></span><span class="hero-fish">🐠</span><span class="hero-octo">🐢</span><span class="hero-star">🌀</span></div>
-      <p class="kicker">GLOBAL READY EDITION</p>
+      <p class="kicker">PLAY FEEL EDITION</p>
       <h1>泡泡島曲棍球</h1>
-      <p class="lead">先拿到 7 分就獲勝。球門再略微縮窄，連擊加速改為純特效，不再跳出奇怪名稱。</p>
+      <p class="lead">先拿到 7 分就獲勝。這一版重新調整拖曳、揮拍、AI反應、球速與暫停恢復節奏。</p>
       <div class="option-grid">
         <label><span>挑戰難度</span><select id="difficulty-select"><option value="easy">輕鬆小魚</option><option value="normal" selected>活力海豚</option><option value="hard">迅捷鯊魚</option><option value="boss">深海魔王</option></select></label>
         <label><span>冒險世界</span><select id="theme-select"><option value="ocean" selected>珊瑚海灣</option><option value="desert">糖果沙漠</option><option value="village">雲朵小鎮</option><option value="night">星光深海</option></select></label>
@@ -91,14 +92,14 @@
 
   <section id="match-screen" class="overlay"><div class="card dialog-card"><div class="match-spinner">🐟</div><h2>尋找對手中</h2><p id="match-status" class="lead">正在游進快速配對佇列…</p><div class="queue-pill">等待時間 <strong id="queue-time">00:00</strong></div><button id="cancel-match-btn" class="btn btn-secondary">取消配對</button></div></section>
   <section id="countdown" class="overlay transparent"><div class="countdown-card"><small>READY?</small><div id="countdown-text">3</div><div class="bubble-row">○ ◌ ○ ◌ ○</div></div></section>
-  <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🌀</div><h2>先休息一下</h2><p class="lead">球場已暫停。全螢幕功能只放在這裡，不會遮住遊戲畫面。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="pause-fullscreen-btn" class="btn btn-secondary pause-fullscreen-btn">⛶ 進入全螢幕</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
+  <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🌀</div><h2>先休息一下</h2><p class="lead">球場已暫停。按下繼續後會先倒數 2、1、GO，避免突然被進球。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="pause-fullscreen-btn" class="btn btn-secondary pause-fullscreen-btn">⛶ 進入全螢幕</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
   <section id="game-over" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🏆</div><p class="kicker">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="score-result"></p><button id="restart-button" class="btn btn-primary">↻ 再玩一次</button><button id="home-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
 
-  <script src="fullscreen-v28.js?v=3.0"></script>
+  <script src="fullscreen-v28.js?v=3.1"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
-  <script src="cloud-config.js?v=3.0"></script>
-  <script src="ranking-v30.js"></script>
-  <script src="auth-v30.js"></script>
-  <script src="bubble-game-v30.js"></script>
+  <script src="cloud-config.js?v=3.1"></script>
+  <script src="ranking-v30.js?v=3.1"></script>
+  <script src="auth-v30.js?v=3.1"></script>
+  <script src="bubble-game-v31.js"></script>
 </body>
 </html>

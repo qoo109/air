@@ -9,13 +9,14 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>泡泡島空氣曲棍球 v4.0.6</title>
-  <link rel="manifest" href="manifest.json?v=4.0.6" />
-  <link rel="stylesheet" href="bubble-ui-v24.css?v=4.0.6" />
-  <link rel="stylesheet" href="bubble-patch-v30.css?v=4.0.6" />
-  <link rel="stylesheet" href="bubble-patch-v31.css?v=4.0.6" />
-  <link rel="stylesheet" href="multiplayer-v40.css?v=4.0.6" />
-  <link rel="stylesheet" href="multiplayer-v404.css?v=4.0.6" />
+  <title>泡泡島空氣曲棍球 v4.0.7</title>
+  <link rel="manifest" href="manifest.json?v=4.0.7" />
+  <link rel="stylesheet" href="bubble-ui-v24.css?v=4.0.7" />
+  <link rel="stylesheet" href="bubble-patch-v30.css?v=4.0.7" />
+  <link rel="stylesheet" href="bubble-patch-v31.css?v=4.0.7" />
+  <link rel="stylesheet" href="multiplayer-v40.css?v=4.0.7" />
+  <link rel="stylesheet" href="multiplayer-v404.css?v=4.0.7" />
+  <link rel="stylesheet" href="multiplayer-v407.css?v=4.0.7" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
@@ -35,7 +36,7 @@
   <section id="auth-screen" class="overlay active">
     <div class="card auth-card">
       <div class="mascot-bubble">🐢</div>
-      <p class="kicker">BUBBLE ISLAND / v4.0.6</p>
+      <p class="kicker">BUBBLE ISLAND / v4.0.7</p>
       <h1>歡迎來到泡泡島</h1>
       <p class="lead">先幫你的冒險角色取一個名字，再進入海底球場。</p>
       <button id="enter-fullscreen-btn" class="btn btn-secondary fullscreen-entry">⛶ 進入全螢幕</button>
@@ -59,9 +60,9 @@
       </div>
       <button id="leaderboard-btn" class="btn btn-secondary rank-open-btn">🏆 查看排行榜</button>
       <div class="hero-scene"><span class="cloud cloud-a"></span><span class="cloud cloud-b"></span><span class="hero-fish">🐠</span><span class="hero-octo">🐢</span><span class="hero-star">🌀</span></div>
-      <p class="kicker">REALTIME MATCH STABLE BETA</p>
+      <p class="kicker">REALTIME MATCH PERFORMANCE BETA</p>
       <h1>泡泡島曲棍球</h1>
-      <p class="lead">單人冒險或真人快速配對。真人模式會等雙方完成即時握手後才一起倒數開局。</p>
+      <p class="lead">真人模式已加入平滑同步、低封包傳輸與手機畫面穩定處理。</p>
       <div class="option-grid">
         <label><span>挑戰難度</span><select id="difficulty-select"><option value="easy">輕鬆小魚</option><option value="normal" selected>活力海豚</option><option value="hard">迅捷鯊魚</option><option value="boss">深海魔王</option></select></label>
         <label><span>冒險世界</span><select id="theme-select"><option value="ocean" selected>珊瑚海灣</option><option value="desert">糖果沙漠</option><option value="village">雲朵小鎮</option><option value="night">星光深海</option></select></label>
@@ -77,15 +78,8 @@
         <div><p class="kicker">LEADERBOARD</p><h2 id="leaderboard-title">最佳連勝榜</h2></div>
         <button id="leaderboard-close-btn" class="leaderboard-close" aria-label="關閉排行榜">✕</button>
       </div>
-      <div class="rank-scope">
-        <button class="scope-tab active" data-scope="local">📱 本機</button>
-        <button class="scope-tab" data-scope="global">🌍 全球</button>
-      </div>
-      <div class="rank-tabs">
-        <button class="rank-tab active" data-board="streak">🔥 連勝</button>
-        <button class="rank-tab" data-board="combo">⚡ 連擊</button>
-        <button class="rank-tab" data-board="wins">🏆 勝場</button>
-      </div>
+      <div class="rank-scope"><button class="scope-tab active" data-scope="local">📱 本機</button><button class="scope-tab" data-scope="global">🌍 全球</button></div>
+      <div class="rank-tabs"><button class="rank-tab active" data-board="streak">🔥 連勝</button><button class="rank-tab" data-board="combo">⚡ 連擊</button><button class="rank-tab" data-board="wins">🏆 勝場</button></div>
       <p id="leaderboard-status" class="leaderboard-status">這台裝置上的玩家紀錄</p>
       <ol id="leaderboard-list" class="rank-list"></ol>
       <p class="rank-note">全球榜使用訪客匿名帳號；真人模式目前仍是公開 Realtime 測試頻道。</p>
@@ -98,29 +92,24 @@
       <div class="online-badge">Supabase Realtime</div>
       <h2>尋找真人對手</h2>
       <p id="match-status" class="lead">正在進入快速配對佇列…</p>
-      <div class="match-meta">
-        <span>等待時間 <strong id="queue-time">00:00</strong></span>
-        <span id="queue-online">等待玩家：計算中</span>
-      </div>
-      <div class="match-actions">
-        <button id="match-ai-fallback-btn" class="btn" hidden>🤖 改與 AI 對戰</button>
-        <button id="cancel-match-btn" class="btn btn-secondary">取消配對</button>
-      </div>
+      <div class="match-meta"><span>等待時間 <strong id="queue-time">00:00</strong></span><span id="queue-online">等待玩家：計算中</span></div>
+      <div class="match-actions"><button id="match-ai-fallback-btn" class="btn" hidden>🤖 改與 AI 對戰</button><button id="cancel-match-btn" class="btn btn-secondary">取消配對</button></div>
     </div>
   </section>
+
   <section id="countdown" class="overlay transparent"><div class="countdown-card"><small>READY?</small><div id="countdown-text">3</div><div class="bubble-row">○ ◌ ○ ◌ ○</div></div></section>
   <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🌀</div><h2>先休息一下</h2><p class="lead">球場已暫停。按下繼續後會先倒數 2、1、GO，避免突然被進球。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="pause-fullscreen-btn" class="btn btn-secondary pause-fullscreen-btn">⛶ 進入全螢幕</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
   <section id="game-over" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🏆</div><p class="kicker">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="score-result"></p><button id="restart-button" class="btn btn-primary">↻ 再玩一次</button><button id="home-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
 
-  <script src="fullscreen-v28.js?v=4.0.6"></script>
+  <script src="fullscreen-v28.js?v=4.0.7"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js"></script>
-  <script src="cloud-endpoint-fix-v406.js?v=4.0.6"></script>
-  <script src="realtime-public-patch-v402.js?v=4.0.6"></script>
-  <script src="cloud-config.js?v=4.0.6"></script>
-  <script src="realtime-hello-throttle-v404.js?v=4.0.6"></script>
-  <script src="ranking-v30.js?v=4.0.6"></script>
-  <script src="auth-v40.js?v=4.0.6"></script>
-  <script src="bubble-game-v31.js?v=4.0.6"></script>
-  <script src="multiplayer-v404.js?v=4.0.6"></script>
+  <script src="cloud-endpoint-fix-v406.js?v=4.0.7"></script>
+  <script src="realtime-public-patch-v402.js?v=4.0.7"></script>
+  <script src="cloud-config.js?v=4.0.7"></script>
+  <script src="realtime-hello-throttle-v404.js?v=4.0.7"></script>
+  <script src="ranking-v30.js?v=4.0.7"></script>
+  <script src="auth-v40.js?v=4.0.7"></script>
+  <script src="bubble-game-v31.js?v=4.0.7"></script>
+  <script src="multiplayer-v407.js?v=4.0.7"></script>
 </body>
 </html>

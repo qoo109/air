@@ -6,6 +6,7 @@ on:
     paths:
       - 'multiplayer-v408.js'
       - 'multiplayer-v430-loader.js'
+      - 'multiplayer-v431-loader.js'
       - 'scripts/validate-v430.mjs'
       - '.github/workflows/validate-multiplayer.yml'
   workflow_dispatch:
@@ -27,7 +28,9 @@ jobs:
           node-version: '22'
 
       - name: Check loader syntax
-        run: node --check multiplayer-v430-loader.js
+        run: |
+          node --check multiplayer-v430-loader.js
+          node --check multiplayer-v431-loader.js
 
       - name: Apply and validate all runtime patches
         run: node scripts/validate-v430.mjs

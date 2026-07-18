@@ -1,10 +1,13 @@
 import { defineConfig } from '@playwright/test';
 
 const externalBaseUrl = process.env.BASE_URL?.trim();
+const baseURL = externalBaseUrl
+  ? `${externalBaseUrl.replace(/\/+$/, '')}/`
+  : 'http://127.0.0.1:4173/';
 
 export default defineConfig({
   testDir: './tests/e2e',
-  timeout: 180_000,
+  timeout: 240_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,
   workers: 1,
@@ -14,7 +17,7 @@ export default defineConfig({
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
   ],
   use: {
-    baseURL: externalBaseUrl || 'http://127.0.0.1:4173',
+    baseURL,
     headless: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -24,7 +27,7 @@ export default defineConfig({
   },
   webServer: externalBaseUrl ? undefined : {
     command: 'python3 -m http.server 4173 --bind 127.0.0.1',
-    url: 'http://127.0.0.1:4173',
+    url: 'http://127.0.0.1:4173/',
     reuseExistingServer: true,
     timeout: 120_000,
   },

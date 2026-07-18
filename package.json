@@ -1,0 +1,16 @@
+{
+  "name": "bubble-island-air-hockey",
+  "version": "4.3.4",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:engine": "node scripts/validate-v430.mjs",
+    "test:sync": "node scripts/run-puck-sync-matrix.mjs",
+    "test:e2e": "playwright test tests/e2e/multiplayer-drift.spec.mjs",
+    "test:e2e:headed": "playwright test tests/e2e/multiplayer-drift.spec.mjs --headed",
+    "test": "npm run test:engine && npm run test:sync"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  }
+}

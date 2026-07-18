@@ -9,16 +9,16 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>泡泡島空氣曲棍球 v4.3.4</title>
-  <link rel="manifest" href="manifest.json?v=4.3.4" />
-  <link rel="stylesheet" href="bubble-ui-v24.css?v=4.3.4" />
-  <link rel="stylesheet" href="bubble-patch-v30.css?v=4.3.4" />
-  <link rel="stylesheet" href="bubble-patch-v31.css?v=4.3.4" />
-  <link rel="stylesheet" href="multiplayer-v40.css?v=4.3.4" />
-  <link rel="stylesheet" href="multiplayer-v404.css?v=4.3.4" />
-  <link rel="stylesheet" href="multiplayer-v407.css?v=4.3.4" />
-  <link rel="stylesheet" href="multiplayer-v408.css?v=4.3.4" />
-  <link rel="stylesheet" href="multiplayer-v430.css?v=4.3.4" />
+  <title>泡泡島空氣曲棍球 v4.3.5</title>
+  <link rel="manifest" href="manifest.json?v=4.3.5" />
+  <link rel="stylesheet" href="bubble-ui-v24.css?v=4.3.5" />
+  <link rel="stylesheet" href="bubble-patch-v30.css?v=4.3.5" />
+  <link rel="stylesheet" href="bubble-patch-v31.css?v=4.3.5" />
+  <link rel="stylesheet" href="multiplayer-v40.css?v=4.3.5" />
+  <link rel="stylesheet" href="multiplayer-v404.css?v=4.3.5" />
+  <link rel="stylesheet" href="multiplayer-v407.css?v=4.3.5" />
+  <link rel="stylesheet" href="multiplayer-v408.css?v=4.3.5" />
+  <link rel="stylesheet" href="multiplayer-v430.css?v=4.3.5" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
@@ -38,7 +38,7 @@
   <section id="auth-screen" class="overlay active">
     <div class="card auth-card">
       <div class="mascot-bubble">🐢</div>
-      <p class="kicker">BUBBLE ISLAND / v4.3.4</p>
+      <p class="kicker">BUBBLE ISLAND / v4.3.5</p>
       <h1>歡迎來到泡泡島</h1>
       <p class="lead">先幫你的冒險角色取一個名字，再進入海底球場。</p>
       <button id="enter-fullscreen-btn" class="btn btn-secondary fullscreen-entry">⛶ 進入全螢幕</button>
@@ -70,7 +70,7 @@
         <label><span>冒險世界</span><select id="theme-select"><option value="ocean" selected>珊瑚海灣</option><option value="desert">糖果沙漠</option><option value="village">雲朵小鎮</option><option value="night">星光深海</option></select></label>
       </div>
       <div class="switches"><button id="sound-toggle" class="chip-btn active">🔊 音效 ON</button><button id="vibration-toggle" class="chip-btn active">📳 震動 ON</button></div>
-      <div class="mode-buttons"><button id="quick-match-btn" class="btn btn-online" disabled>🌐 防漂移同步引擎載入中…</button><button id="start-button" class="btn btn-primary">▶ 單人冒險</button></div>
+      <div class="mode-buttons"><button id="quick-match-btn" class="btn btn-online" disabled>🌐 自適應同步引擎載入中…</button><button id="start-button" class="btn btn-primary">▶ 單人冒險</button></div>
     </div>
   </section>
 
@@ -91,7 +91,7 @@
   <section id="match-screen" class="overlay">
     <div class="card dialog-card">
       <div class="match-spinner">🐟</div>
-      <div class="online-badge">🎯 權威快照防漂移</div>
+      <div class="online-badge">🎯 自適應快照防漂移</div>
       <h2>尋找真人對手</h2>
       <p id="match-status" class="lead">正在進入快速配對佇列…</p>
       <div class="match-meta"><span>等待時間 <strong id="queue-time">00:00</strong></span><span id="queue-online">等待玩家：計算中</span></div>
@@ -103,18 +103,18 @@
   <section id="pause" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🌀</div><h2>先休息一下</h2><p class="lead">球場已暫停。按下繼續後會先倒數 2、1、GO，避免突然被進球。</p><button id="resume-button" class="btn btn-primary">▶ 繼續遊戲</button><button id="pause-fullscreen-btn" class="btn btn-secondary pause-fullscreen-btn">⛶ 進入全螢幕</button><button id="back-menu-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
   <section id="game-over" class="overlay"><div class="card dialog-card"><div class="dialog-mascot">🏆</div><p class="kicker">GAME RESULT</p><h2 id="winner-text">遊戲結束</h2><p id="final-score" class="score-result"></p><button id="restart-button" class="btn btn-primary">↻ 再玩一次</button><button id="home-button" class="btn btn-secondary">⌂ 回主選單</button></div></section>
 
-  <script src="fullscreen-v28.js?v=4.3.4"></script>
+  <script src="fullscreen-v28.js?v=4.3.5"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.2/dist/umd/supabase.min.js"></script>
-  <script src="cloud-endpoint-fix-v406.js?v=4.3.4"></script>
-  <script src="realtime-public-patch-v402.js?v=4.3.4"></script>
-  <script src="cloud-config.js?v=4.3.4"></script>
-  <script src="realtime-hello-throttle-v404.js?v=4.3.4"></script>
-  <script src="ranking-v30.js?v=4.3.4"></script>
-  <script src="auth-v40.js?v=4.3.4"></script>
-  <script src="singleplayer-resize-guard-v407.js?v=4.3.4"></script>
-  <script src="bubble-game-v31.js?v=4.3.4"></script>
+  <script src="cloud-endpoint-fix-v406.js?v=4.3.5"></script>
+  <script src="realtime-public-patch-v402.js?v=4.3.5"></script>
+  <script src="cloud-config.js?v=4.3.5"></script>
+  <script src="realtime-hello-throttle-v404.js?v=4.3.5"></script>
+  <script src="ranking-v30.js?v=4.3.5"></script>
+  <script src="auth-v40.js?v=4.3.5"></script>
+  <script src="singleplayer-resize-guard-v407.js?v=4.3.5"></script>
+  <script src="bubble-game-v31.js?v=4.3.5"></script>
   <script>window.__restoreBubbleResizeGuard?.();</script>
-  <script src="multiplayer-test-hooks-v434.js?v=4.3.4"></script>
-  <script src="multiplayer-v433-loader.js?v=4.3.4"></script>
+  <script src="multiplayer-test-hooks-v434.js?v=4.3.5"></script>
+  <script src="multiplayer-v435-loader.js?v=4.3.5"></script>
 </body>
 </html>

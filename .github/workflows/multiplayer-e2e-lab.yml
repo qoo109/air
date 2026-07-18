@@ -1,5 +1,6 @@
 name: Multiplayer E2E Lab
 
+# Initial automated two-player laboratory kickoff.
 on:
   push:
     branches: [main]

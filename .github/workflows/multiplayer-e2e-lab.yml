@@ -1,6 +1,14 @@
 name: Multiplayer E2E Lab
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'playwright.config.mjs'
+      - 'multiplayer-test-hooks-v434.js'
+      - 'tests/e2e/**'
+      - '.github/workflows/multiplayer-e2e-lab.yml'
   workflow_dispatch:
     inputs:
       delay_ms:

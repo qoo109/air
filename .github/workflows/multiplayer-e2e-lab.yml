@@ -4,8 +4,10 @@ on:
   push:
     branches: [main]
     paths:
+      - 'index.html'
       - 'package.json'
       - 'playwright.config.mjs'
+      - 'multiplayer-v435-loader.js'
       - 'multiplayer-test-hooks-v434.js'
       - 'tests/e2e/**'
       - '.github/workflows/multiplayer-e2e-lab.yml'
@@ -94,7 +96,7 @@ jobs:
         if: always()
         run: |
           {
-            echo '## 泡泡島雙玩家測試'
+            echo '## 泡泡島雙玩家測試 v4.3.5'
             echo ''
             echo "- 延遲：${NET_DELAY}ms"
             echo "- 抖動：${NET_JITTER}ms"
@@ -103,7 +105,8 @@ jobs:
             echo "- 量測時間：${SAMPLE_DURATION_MS}ms"
             echo "- 瀏覽器測試結果：${{ steps.browser_lab.outcome }}"
             echo ''
-            echo '失敗時請下載本次 artifact，查看 failure-diagnostics.json、Trace、截圖與影片。'
+            echo '報告會分開顯示 rawDrift 與扣除視覺延遲後的 pathDrift。'
+            echo '失敗時請下載 artifact，查看 failure-diagnostics.json、Trace、截圖與影片。'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail workflow when browser laboratory failed

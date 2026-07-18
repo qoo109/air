@@ -4,9 +4,9 @@
   const quick = document.getElementById('quick-match-btn');
   const status = document.getElementById('match-status');
 
-  const required = (source, before, after, label) => {
-    if (!source.includes(before)) throw new Error(`v4.3.5 patch missing: ${label}`);
-    return source.replace(before, after);
+  const replaceToken = (source, token, replacement, label) => {
+    if (!source.includes(token)) throw new Error(`v4.3.5 patch missing: ${label}`);
+    return source.replace(token, replacement);
   };
 
   async function boot() {
@@ -23,52 +23,86 @@
       return response.text();
     });
 
-    loader = required(
+    loader = replaceToken(
       loader,
-      `const SNAPSHOT_DELAY_MS = 46;\n   const noRemotePaddle = { x: -10000, y: -10000 };`,
-      `let adaptiveSnapshotDelayMs = 38;\n   let snapshotIntervalEma = 32;\n   let snapshotJitterEma = 0;\n   let lastSnapshotAt = 0;\n   const noRemotePaddle = { x: -10000, y: -10000 };`,
+      'const SNAPSHOT_DELAY_MS = 46;',
+      `let adaptiveSnapshotDelayMs = 38;
+   let snapshotIntervalEma = 32;
+   let snapshotJitterEma = 0;
+   let lastSnapshotAt = 0;`,
       'adaptive snapshot state',
     );
 
-    loader = required(
+    loader = replaceToken(
       loader,
-      `const renderAt = now - SNAPSHOT_DELAY_MS;`,
-      `const renderAt = now - adaptiveSnapshotDelayMs;`,
+      'const renderAt = now - SNAPSHOT_DELAY_MS;',
+      'const renderAt = now - adaptiveSnapshotDelayMs;',
       'adaptive render delay',
     );
 
-    loader = required(
+    loader = replaceToken(
       loader,
-      `const extra = Math.min(0.035, Math.max(0, (renderAt - newer.receivedAt) / 1000));`,
-      `const extra = Math.min(0.050, Math.max(0, (renderAt - newer.receivedAt) / 1000));`,
+      'const extra = Math.min(0.035, Math.max(0, (renderAt - newer.receivedAt) / 1000));',
+      'const extra = Math.min(0.050, Math.max(0, (renderAt - newer.receivedAt) / 1000));',
       'bounded short extrapolation',
     );
 
-    loader = required(
+    loader = replaceToken(
       loader,
-      `puckSnapshots.push({\n       x: next.x,\n       y: next.y,\n       vx: next.vx,\n       vy: next.vy,\n       receivedAt: stateReceivedAt,\n     });\n     if (puckSnapshots.length > 10) puckSnapshots.splice(0, puckSnapshots.length - 10);`,
-      `const previousSnapshot = puckSnapshots[puckSnapshots.length - 1];\n     if (lastSnapshotAt > 0) {\n       const interval = clamp(stateReceivedAt - lastSnapshotAt, 8, 180);\n       const intervalError = Math.abs(interval - snapshotIntervalEma);\n       snapshotIntervalEma = lerp(snapshotIntervalEma, interval, 0.16);\n       snapshotJitterEma = lerp(snapshotJitterEma, intervalError, 0.14);\n       adaptiveSnapshotDelayMs = clamp(22 + snapshotJitterEma * 1.7 + Math.max(0, snapshotIntervalEma - 32) * 0.28, 28, 58);\n     }\n     lastSnapshotAt = stateReceivedAt;\n\n     if (previousSnapshot) {\n       const speedBefore = Math.hypot(previousSnapshot.vx, previousSnapshot.vy);\n       const speedAfter = Math.hypot(next.vx, next.vy);\n       const dot = previousSnapshot.vx * next.vx + previousSnapshot.vy * next.vy;\n       const sharpDirectionChange = speedBefore > 160 && speedAfter > 160 && dot < speedBefore * speedAfter * 0.20;\n       const discontinuity = Math.hypot(next.x - previousSnapshot.x, next.y - previousSnapshot.y) > 150;\n       if (sharpDirectionChange || discontinuity || scoreChanged) puckSnapshots.length = 0;\n     }\n\n     puckSnapshots.push({\n       x: next.x,\n       y: next.y,\n       vx: next.vx,\n       vy: next.vy,\n       receivedAt: stateReceivedAt,\n     });\n     if (puckSnapshots.length > 14) puckSnapshots.splice(0, puckSnapshots.length - 14);`,
+      'puckSnapshots.push({',
+      `const previousSnapshot = puckSnapshots[puckSnapshots.length - 1];
+     if (lastSnapshotAt > 0) {
+       const interval = clamp(stateReceivedAt - lastSnapshotAt, 8, 180);
+       const intervalError = Math.abs(interval - snapshotIntervalEma);
+       snapshotIntervalEma = lerp(snapshotIntervalEma, interval, 0.16);
+       snapshotJitterEma = lerp(snapshotJitterEma, intervalError, 0.14);
+       adaptiveSnapshotDelayMs = clamp(22 + snapshotJitterEma * 1.7 + Math.max(0, snapshotIntervalEma - 32) * 0.28, 28, 58);
+     }
+     lastSnapshotAt = stateReceivedAt;
+
+     if (previousSnapshot) {
+       const speedBefore = Math.hypot(previousSnapshot.vx, previousSnapshot.vy);
+       const speedAfter = Math.hypot(next.vx, next.vy);
+       const dot = previousSnapshot.vx * next.vx + previousSnapshot.vy * next.vy;
+       const sharpDirectionChange = speedBefore > 160 && speedAfter > 160 && dot < speedBefore * speedAfter * 0.20;
+       const discontinuity = Math.hypot(next.x - previousSnapshot.x, next.y - previousSnapshot.y) > 150;
+       if (sharpDirectionChange || discontinuity || scoreChanged) puckSnapshots.length = 0;
+     }
+
+     puckSnapshots.push({`,
       'collision-aware snapshot queue',
     );
 
-    loader = required(
+    loader = replaceToken(
       loader,
-      `const snapDistance = inHitGrace ? 420 : 220;`,
-      `const snapDistance = inHitGrace ? 320 : 150;`,
+      'if (puckSnapshots.length > 10) puckSnapshots.splice(0, puckSnapshots.length - 10);',
+      'if (puckSnapshots.length > 14) puckSnapshots.splice(0, puckSnapshots.length - 14);',
+      'snapshot queue limit',
+    );
+
+    loader = replaceToken(
+      loader,
+      'const snapDistance = inHitGrace ? 420 : 220;',
+      'const snapDistance = inHitGrace ? 320 : 150;',
       'tighter divergence bound',
     );
 
-    loader = required(
+    loader = replaceToken(
       loader,
-      `const correctionRate = distance > 100 ? 16 : distance > 36 ? 11 : 7;`,
-      `const correctionRate = distance > 90 ? 20 : distance > 30 ? 14 : 9;`,
+      'const correctionRate = distance > 100 ? 16 : distance > 36 ? 11 : 7;',
+      'const correctionRate = distance > 90 ? 20 : distance > 30 ? 14 : 9;',
       'faster bounded correction',
     );
 
-    loader = required(
+    loader = replaceToken(
       loader,
-      `puckSnapshots.length = 0;\n     lastStateSequence = 0;`,
-      `puckSnapshots.length = 0;\n     adaptiveSnapshotDelayMs = 38;\n     snapshotIntervalEma = 32;\n     snapshotJitterEma = 0;\n     lastSnapshotAt = 0;\n     lastStateSequence = 0;`,
+      'puckSnapshots.length = 0;\n     lastStateSequence = 0;',
+      `puckSnapshots.length = 0;
+     adaptiveSnapshotDelayMs = 38;
+     snapshotIntervalEma = 32;
+     snapshotJitterEma = 0;
+     lastSnapshotAt = 0;
+     lastStateSequence = 0;`,
       'reset adaptive synchronizer',
     );
 

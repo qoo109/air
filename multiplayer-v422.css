@@ -1,0 +1,108 @@
+/* Bubble Island mobile HUD + render optimization v4.2.2 */
+body.multiplayer-running #hud{
+  top:max(4px,env(safe-area-inset-top))!important;
+  left:max(5px,env(safe-area-inset-left))!important;
+  right:max(5px,env(safe-area-inset-right))!important;
+  width:auto!important;
+  min-height:54px!important;
+  max-height:64px!important;
+  padding:4px 6px!important;
+  gap:4px!important;
+  border-width:2px!important;
+  border-radius:16px!important;
+  box-shadow:0 3px 0 rgba(52,73,94,.16)!important;
+  grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr) 30px!important;
+  align-items:center!important;
+  overflow:hidden!important;
+}
+body.multiplayer-running #hud .hud-player{
+  gap:4px!important;
+  min-width:0!important;
+  line-height:1!important;
+}
+body.multiplayer-running #hud .hud-player div{
+  gap:1px!important;
+  min-width:0!important;
+}
+body.multiplayer-running #hud .hud-player small{
+  font-size:6px!important;
+  line-height:1!important;
+  letter-spacing:.04em;
+}
+body.multiplayer-running #hud .hud-player strong{
+  display:block!important;
+  max-width:23vw!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:11px!important;
+  line-height:1.05!important;
+}
+body.multiplayer-running #hud .hud-avatar{
+  flex:0 0 auto;
+  font-size:18px!important;
+  line-height:1!important;
+}
+body.multiplayer-running #hud .hud-center{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  place-items:center!important;
+  min-width:0!important;
+  gap:0!important;
+  line-height:1!important;
+}
+body.multiplayer-running #hud .hud-center b{
+  font-size:11px!important;
+  line-height:1!important;
+}
+body.multiplayer-running #hud #speed-label{
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:1000!important;
+  white-space:nowrap!important;
+}
+body.multiplayer-running #hud #combo-label{
+  display:none!important;
+}
+body.multiplayer-running #hud #best-combo-hud,
+body.multiplayer-running #hud #win-streak-hud{
+  max-width:70px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:7px!important;
+  line-height:1!important;
+}
+body.multiplayer-running #hud #pause-btn{
+  width:28px!important;
+  height:28px!important;
+  min-width:28px!important;
+  padding:0!important;
+  border-width:2px!important;
+  font-size:14px!important;
+  line-height:1!important;
+}
+body.multiplayer-running #gameCanvas{
+  image-rendering:auto;
+  contain:strict!important;
+  will-change:auto!important;
+}
+@media(max-width:390px){
+  body.multiplayer-running #hud{
+    grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr) 28px!important;
+    padding:3px 5px!important;
+  }
+  body.multiplayer-running #hud .hud-player strong{max-width:21vw!important;font-size:10px!important}
+  body.multiplayer-running #hud .hud-avatar{font-size:16px!important}
+  body.multiplayer-running #hud #best-combo-hud,
+  body.multiplayer-running #hud #win-streak-hud{font-size:6px!important;max-width:62px!important}
+}
+@media(orientation:landscape) and (max-height:520px){
+  body.multiplayer-running #hud{
+    top:max(2px,env(safe-area-inset-top))!important;
+    min-height:44px!important;
+    max-height:50px!important;
+  }
+  body.multiplayer-running #hud .hud-player small,
+  body.multiplayer-running #hud #win-streak-hud{display:none!important}
+}

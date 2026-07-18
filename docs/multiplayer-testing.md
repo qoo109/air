@@ -1,113 +1,112 @@
 # 泡泡島多人連線測試實驗室
 
-## 測試分成兩層
+目前測試分成兩層：快速且穩定的演算法測試，以及真正登入 Supabase 的雙玩家瀏覽器測試。
 
-### 1. 每次更新自動執行
+## 一、自動基礎驗證
 
-工作流程：`Validate multiplayer engine`
+GitHub Actions：
 
-會檢查：
+```text
+Validate multiplayer engine
+```
 
-- 所有多人載入器與測試探針的 JavaScript 語法
-- v4.3.3 巢狀補丁是否能完整套用到基礎引擎
-- 20ms、50ms、80ms、120ms 四種網路情境
+每次多人引擎、測試探針或測試程式改動時會執行：
+
+- JavaScript 語法檢查
+- v4.3.3 巢狀載入器補丁驗證
+- 20／50／80／120ms 網路延遲情境
 - 抖動、丟包與封包亂序
-- 平均球體誤差、P95 誤差、最大誤差與畫面跳動
+- 平均、P95、最大球體誤差
+- 單幀跳動與強制校正次數
 
-產物：`puck-sync-matrix-<run number>`
+輸出 Artifact：
 
-其中包含 `puck-sync-matrix.json`。
+```text
+puck-sync-matrix-<run number>
+```
 
-### 2. 兩個虛擬手機玩家實際對打
+## 二、雙玩家 E2E 實驗室
 
-工作流程：`Multiplayer E2E Lab`
+GitHub Actions：
 
-操作：
+```text
+Multiplayer E2E Lab
+```
 
-1. 開啟 GitHub 儲存庫的 **Actions**。
-2. 左側選擇 **Multiplayer E2E Lab**。
-3. 按 **Run workflow**。
-4. 設定延遲、抖動、丟包與是否強制 Metered TURN。
-5. 測試完成後下載 `multiplayer-e2e-report-<run number>`。
-
-預設參數：
-
-- 延遲：60ms
-- 抖動：20ms
-- 丟包：2%
-- 強制 TURN：關閉
-- 量測時間：15000ms
-
-測試會建立兩個互相隔離的手機瀏覽器環境：
+它會建立兩個隔離瀏覽器環境：
 
 - iPhone 13 模擬玩家
 - Pixel 7 模擬玩家
 
-兩邊會各自建立匿名帳號、進入配對、移動球拍並收集球的位置。
+兩位玩家會自動：
 
-## 報告內容
+1. 建立匿名帳號。
+2. 輸入不同名稱。
+3. 同時進入快速配對。
+4. 驗證主場龜殼與客場旋渦殼。
+5. 自動拖動球拍。
+6. 每 100ms 比較雙方看到的球位置。
+7. 匯出路由、延遲、漂移、封包與畫面跳動報告。
 
-`multiplayer-drift-report.json` 包含：
+## 手動執行
 
-- 主場與客場角色、頭像
-- P2P、Metered 或 Relay 路由
-- RTT 與連線診斷
-- 平均球體位置差
-- P95 球體位置差
-- 最大球體位置差
-- 畫面單幀跳動
-- 延遲、抖動、丟包模擬統計
-- 測試期間的原始樣本
+進入：
 
-失敗時還會保留：
+```text
+GitHub → Actions → Multiplayer E2E Lab → Run workflow
+```
 
-- Playwright Trace
-- 失敗畫面截圖
-- 測試影片
-- HTML 測試報告
+預設參數：
 
-## 建議測試組合
+```text
+delay_ms: 60
+jitter_ms: 20
+loss_pct: 2
+force_turn: false
+sample_duration_ms: 15000
+```
 
-| 情境 | 延遲 | 抖動 | 丟包 | 強制 TURN |
+推薦測試組合：
+
+| 情境 | Delay | Jitter | Loss | Force TURN |
 |---|---:|---:|---:|---|
-| 同一個 Wi-Fi | 20 | 5 | 0 | 否 |
-| 一般 4G／5G | 60 | 20 | 2 | 否 |
-| 擁塞行動網路 | 100 | 35 | 4 | 否 |
-| Metered TURN 驗收 | 60 | 20 | 2 | 是 |
+| 一般 Wi‑Fi | 20 | 5 | 0 | false |
+| 一般行動網路 | 50 | 15 | 1 | false |
+| 擁塞行動網路 | 80 | 25 | 3 | false |
+| TURN 驗證 | 60 | 20 | 2 | true |
+| 困難網路 | 120 | 40 | 5 | false |
 
-強制 TURN 會使用 Metered 流量額度，不需要每次都開啟。
+## 報告
+
+工作流程完成後下載：
+
+```text
+multiplayer-e2e-report-<run number>
+```
+
+內含：
+
+- `multiplayer-drift-report.json`
+- Playwright HTML report
+- Trace
+- 失敗截圖
+- 測試影片
+
+重點欄位：
+
+- `routes`：P2P、Metered 或 Relay 與連線診斷。
+- `drift.averagePx`：平均位置差。
+- `drift.p95Px`：95% 樣本不超過的漂移。
+- `drift.maxPx`：最大位置差。
+- `visual.p95JumpPx`：畫面球體單幀跳動。
+- `packetSimulation`：延遲、丟包與傳送錯誤統計。
 
 ## 本機執行
 
 ```bash
 npm install
-npx playwright install chromium
-npm run test:sync
+npm test
 npm run test:e2e
 ```
 
-自訂網路：
-
-```bash
-NET_DELAY=80 NET_JITTER=25 NET_LOSS=3 npm run test:e2e
-```
-
-強制 Metered TURN：
-
-```bash
-FORCE_TURN=true npm run test:e2e
-```
-
-## 網頁測試參數
-
-測試探針只有在 URL 帶有測試參數時才會啟動，正常玩家不會受到影響。
-
-```text
-?e2e=1&netDelay=80&netJitter=25&netLoss=3
-```
-
-也支援簡寫：
-
-```text
-?testNet=80,25,3
-```
+正式網站只有網址帶有 `e2e=1`、`testNet` 或 `netDelay` 時才會開啟測試探針；正常玩家不會被注入延遲或丟包。

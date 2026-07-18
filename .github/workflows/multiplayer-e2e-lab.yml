@@ -1,0 +1,80 @@
+name: Multiplayer E2E Lab
+
+on:
+  workflow_dispatch:
+    inputs:
+      delay_ms:
+        description: Artificial one-way gameplay delay in milliseconds
+        required: true
+        default: '60'
+        type: string
+      jitter_ms:
+        description: Artificial gameplay jitter in milliseconds
+        required: true
+        default: '20'
+        type: string
+      loss_pct:
+        description: Artificial gameplay packet loss percentage
+        required: true
+        default: '2'
+        type: string
+      force_turn:
+        description: Force Metered TURN instead of attempting direct P2P
+        required: true
+        default: false
+        type: boolean
+      sample_seconds:
+        description: Measurement duration in seconds
+        required: true
+        default: '15'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: multiplayer-e2e-lab
+  cancel-in-progress: false
+
+jobs:
+  two-player-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      NET_DELAY: ${{ inputs.delay_ms }}
+      NET_JITTER: ${{ inputs.jitter_ms }}
+      NET_LOSS: ${{ inputs.loss_pct }}
+      FORCE_TURN: ${{ inputs.force_turn }}
+      SAMPLE_DURATION_MS: ${{ inputs.sample_seconds }}000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run deterministic synchronization matrix
+        run: npm run test:sync
+
+      - name: Run two-player browser laboratory
+        run: npm run test:e2e
+
+      - name: Upload reports, traces and videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiplayer-e2e-report-${{ github.run_number }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14

@@ -25,7 +25,7 @@
 
     const eventMarker = `    source = source\n      .replaceAll('hello-v408', 'hello-v430')`;
 
-    const ballSmoothingPatches = String.raw`    source = required(source,
+    const ballSmoothingPatches = `    source = required(source,
       \`stateInterval: 40,\n    inputInterval: 28,\n    inputKeepAlive: 170,\n    correctionRate: 5.2,\n    snapDistance: 440,\n    p2pTimeout: 5200,\n    disconnectTimeout: 14000\`,
       \`stateInterval: 32,\n    inputInterval: 24,\n    inputKeepAlive: 150,\n    correctionRate: 4.2,\n    snapDistance: 560,\n    p2pTimeout: 5200,\n    disconnectTimeout: 14000\`,
       'ball network cadence');

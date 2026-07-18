@@ -1,6 +1,5 @@
 name: Multiplayer E2E Lab
 
-# Initial automated two-player laboratory kickoff.
 on:
   push:
     branches: [main]
@@ -48,22 +47,23 @@ concurrency:
 jobs:
   two-player-lab:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     env:
-      NET_DELAY: ${{ inputs.delay_ms }}
-      NET_JITTER: ${{ inputs.jitter_ms }}
-      NET_LOSS: ${{ inputs.loss_pct }}
-      FORCE_TURN: ${{ inputs.force_turn }}
-      SAMPLE_DURATION_MS: ${{ inputs.sample_duration_ms }}
+      NET_DELAY: ${{ inputs.delay_ms || '60' }}
+      NET_JITTER: ${{ inputs.jitter_ms || '20' }}
+      NET_LOSS: ${{ inputs.loss_pct || '2' }}
+      FORCE_TURN: ${{ inputs.force_turn || false }}
+      SAMPLE_DURATION_MS: ${{ inputs.sample_duration_ms || '15000' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
+          package-manager-cache: false
 
       - name: Install test dependencies
         run: npm install --no-audit --no-fund
@@ -75,11 +75,13 @@ jobs:
         run: npm run test:sync
 
       - name: Run two-player browser laboratory
+        id: browser_lab
+        continue-on-error: true
         run: npm run test:e2e
 
       - name: Upload reports, traces and videos
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: multiplayer-e2e-report-${{ github.run_number }}
           path: |
@@ -87,3 +89,25 @@ jobs:
             test-results/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Write test summary
+        if: always()
+        run: |
+          {
+            echo '## 泡泡島雙玩家測試'
+            echo ''
+            echo "- 延遲：${NET_DELAY}ms"
+            echo "- 抖動：${NET_JITTER}ms"
+            echo "- 丟包：${NET_LOSS}%"
+            echo "- 強制 TURN：${FORCE_TURN}"
+            echo "- 量測時間：${SAMPLE_DURATION_MS}ms"
+            echo "- 瀏覽器測試結果：${{ steps.browser_lab.outcome }}"
+            echo ''
+            echo '失敗時請下載本次 artifact，查看 failure-diagnostics.json、Trace、截圖與影片。'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail workflow when browser laboratory failed
+        if: steps.browser_lab.outcome != 'success'
+        run: |
+          echo '雙玩家瀏覽器測試失敗；完整狀態與瀏覽器日誌已上傳到 artifact。'
+          exit 1

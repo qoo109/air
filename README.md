@@ -32,6 +32,7 @@
 ├── multiplayer-test-hooks-v434.js     # v4.3.4 測試探針，正常玩家不啟用
 ├── styles／CSS 版本檔                  # 目前頁面仍載入的視覺層
 ├── docs/
+│   ├── reusable-multiplayer-stack-guide.md # 新遊戲可重用的完整多人建置手冊
 │   ├── turn-webrtc-setup.md            # TURN 與 Edge Function 設定
 │   ├── multiplayer-testing.md          # 自動測試操作
 │   └── releases.md                     # 最近三版紀錄
@@ -57,6 +58,7 @@ npm run test:e2e
 
 ## 文件
 
+- [新遊戲多人連線標準建置手冊](docs/reusable-multiplayer-stack-guide.md)
 - [Metered TURN／WebRTC 設定](docs/turn-webrtc-setup.md)
 - [多人連線測試實驗室](docs/multiplayer-testing.md)
 - [最近三版紀錄](docs/releases.md)

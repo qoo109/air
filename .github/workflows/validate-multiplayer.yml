@@ -4,13 +4,20 @@ on:
   push:
     branches: [main]
     paths:
+      - 'index.html'
+      - 'package.json'
       - 'multiplayer-v408.js'
       - 'multiplayer-v430-loader.js'
       - 'multiplayer-v431-loader.js'
       - 'multiplayer-v432-loader.js'
       - 'multiplayer-v433-loader.js'
+      - 'multiplayer-test-hooks-v434.js'
       - 'scripts/validate-v430.mjs'
+      - 'scripts/run-puck-sync-matrix.mjs'
+      - 'tests/e2e/multiplayer-drift.spec.mjs'
+      - 'playwright.config.mjs'
       - '.github/workflows/validate-multiplayer.yml'
+      - '.github/workflows/multiplayer-e2e-lab.yml'
   workflow_dispatch:
 
 permissions:
@@ -29,12 +36,28 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Check loader syntax
+      - name: Check JavaScript syntax
         run: |
           node --check multiplayer-v430-loader.js
           node --check multiplayer-v431-loader.js
           node --check multiplayer-v432-loader.js
           node --check multiplayer-v433-loader.js
+          node --check multiplayer-test-hooks-v434.js
+          node --check scripts/run-puck-sync-matrix.mjs
+          node --check tests/e2e/multiplayer-drift.spec.mjs
+          node --check playwright.config.mjs
 
       - name: Apply and validate all runtime patches
         run: node scripts/validate-v430.mjs
+
+      - name: Run deterministic puck synchronization matrix
+        run: node scripts/run-puck-sync-matrix.mjs
+
+      - name: Upload synchronization matrix
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: puck-sync-matrix-${{ github.run_number }}
+          path: test-results/puck-sync-matrix.json
+          if-no-files-found: warn
+          retention-days: 14

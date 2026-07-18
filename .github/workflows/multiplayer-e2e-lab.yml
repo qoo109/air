@@ -42,7 +42,7 @@ permissions:
 
 concurrency:
   group: multiplayer-e2e-lab
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   two-player-lab:

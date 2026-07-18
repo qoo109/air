@@ -6,6 +6,7 @@ const percentile = (values, p) => {
   return sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p))];
 };
 const average = (values) => values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
+const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
 function collectBrowserDiagnostics(page, label) {
   const entries = [];
@@ -43,7 +44,6 @@ async function attachJson(testInfo, name, value) {
 }
 
 async function enterIsland(page, name, query) {
-  // A query-only URL preserves either the local root or a GitHub Pages /air/ base path.
   await page.goto(query, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.BubbleE2E?.enabled === true, null, { timeout: 30_000 });
   const auth = page.locator('#auth-screen');
@@ -68,12 +68,8 @@ async function waitForGamePair(pageA, pageB, timeoutMs) {
   while (Date.now() - started < timeoutMs) {
     const [stateA, stateB] = await Promise.all([pageState(pageA), pageState(pageB)]);
     last = { stateA, stateB };
-    const runningA = stateA.bodyClasses.includes('multiplayer-running');
-    const runningB = stateB.bodyClasses.includes('multiplayer-running');
-    const puckA = Boolean(stateA.snapshot?.puck);
-    const puckB = Boolean(stateB.snapshot?.puck);
-    if (runningA && runningB && puckA && puckB) return last;
-
+    const ready = [stateA, stateB].every((state) => state.bodyClasses.includes('multiplayer-running') && state.snapshot?.puck);
+    if (ready) return last;
     const combined = `${stateA.status} ${stateA.queue} ${stateB.status} ${stateB.queue}`;
     if (/連線失敗|設定錯誤|匿名登入.*限制|權限被拒絕|資料庫尚未安裝|CHANNEL_ERROR|TIMED_OUT/i.test(combined)) {
       throw new Error(`多人連線明確失敗：${combined}`);
@@ -89,19 +85,15 @@ async function pairWithOneRetry(pageA, pageB, testInfo) {
     { first: pageB, second: pageA, label: 'B-first-retry' },
   ];
   let previousError = null;
-
   for (let index = 0; index < attempts.length; index += 1) {
     const attempt = attempts[index];
     if (index > 0) {
       await Promise.allSettled([leaveMatch(pageA), leaveMatch(pageB)]);
       await pageA.waitForTimeout(700);
     }
-
     await attempt.first.locator('#quick-match-btn').click();
-    // Avoid two first-poll requests racing at exactly the same millisecond.
     await attempt.first.waitForTimeout(650);
     await attempt.second.locator('#quick-match-btn').click();
-
     try {
       return await waitForGamePair(pageA, pageB, index === 0 ? 55_000 : 75_000);
     } catch (error) {
@@ -114,7 +106,6 @@ async function pairWithOneRetry(pageA, pageB, testInfo) {
       });
     }
   }
-
   throw previousError || new Error('雙玩家配對失敗');
 }
 
@@ -122,17 +113,17 @@ async function drivePaddle(page, phase, durationMs) {
   const canvas = page.locator('#gameCanvas');
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Game canvas has no bounding box');
-  const centerX = box.x + box.width / 2;
-  const centerY = box.y + box.height * 0.79;
-  await page.mouse.move(centerX, centerY);
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.79);
   await page.mouse.down();
   const started = Date.now();
   let index = 0;
   while (Date.now() - started < durationMs) {
     const t = index / 11 + phase;
-    const x = box.x + box.width * (0.5 + Math.sin(t) * 0.28);
-    const y = box.y + box.height * (0.77 + Math.cos(t * 0.73) * 0.12);
-    await page.mouse.move(x, y, { steps: 2 });
+    await page.mouse.move(
+      box.x + box.width * (0.5 + Math.sin(t) * 0.28),
+      box.y + box.height * (0.77 + Math.cos(t * 0.73) * 0.12),
+      { steps: 2 },
+    );
     await page.waitForTimeout(55);
     index += 1;
   }
@@ -143,9 +134,38 @@ async function snapshot(page) {
   return page.evaluate(() => window.BubbleE2E.getSnapshot());
 }
 
+function calculateLagCompensatedDrift(samples) {
+  const usable = samples.slice(10);
+  const candidates = [];
+  for (let lagMs = 0; lagMs <= 220; lagMs += 10) {
+    const errors = [];
+    for (const sample of usable) {
+      const targetAt = sample.at - lagMs;
+      let closest = null;
+      let closestDelta = Infinity;
+      for (const hostSample of usable) {
+        const delta = Math.abs(hostSample.at - targetAt);
+        if (delta < closestDelta) {
+          closest = hostSample;
+          closestDelta = delta;
+        }
+      }
+      if (closest && closestDelta <= 75) errors.push(distance(closest.hostPuck, sample.guestInHostView));
+    }
+    if (errors.length > 30) candidates.push({ lagMs, errors, averagePx: average(errors) });
+  }
+  const best = candidates.sort((a, b) => a.averagePx - b.averagePx)[0] || { lagMs: 0, errors: [] };
+  return {
+    estimatedVisualLagMs: best.lagMs,
+    samples: best.errors.length,
+    averagePx: +average(best.errors).toFixed(2),
+    p95Px: +percentile(best.errors, 0.95).toFixed(2),
+    maxPx: +(best.errors.length ? Math.max(...best.errors) : 0).toFixed(2),
+  };
+}
+
 test('two mobile players stay synchronized and generate a drift report', async ({ browser }, testInfo) => {
   test.setTimeout(240_000);
-
   const delay = Number(process.env.NET_DELAY || 60);
   const jitter = Number(process.env.NET_JITTER || 20);
   const loss = Number(process.env.NET_LOSS || 2);
@@ -166,13 +186,11 @@ test('two mobile players stay synchronized and generate a drift report', async (
       enterIsland(pageA, `測試甲${suffix}`, `${queryBase}&testSeed=101`),
       enterIsland(pageB, `測試乙${suffix}`, `${queryBase}&testSeed=202`),
     ]);
-
     await pairWithOneRetry(pageA, pageB, testInfo);
 
     const firstA = await snapshot(pageA);
     const firstB = await snapshot(pageB);
     expect(firstA.roleLabel).not.toBe(firstB.roleLabel);
-
     const hostPage = firstA.roleLabel.includes('主場') ? pageA : pageB;
     const guestPage = hostPage === pageA ? pageB : pageA;
     const hostInitial = hostPage === pageA ? firstA : firstB;
@@ -194,14 +212,15 @@ test('two mobile players stay synchronized and generate a drift report', async (
           const guestInHostView = { x: 1000 - guest.puck.x, y: 1600 - guest.puck.y };
           driftSamples.push({
             at: Date.now(),
-            distancePx: Math.hypot(host.puck.x - guestInHostView.x, host.puck.y - guestInHostView.y),
+            rawDistancePx: distance(host.puck, guestInHostView),
             hostPuck: host.puck,
             guestPuck: guest.puck,
+            guestInHostView,
             hostDiagnostics: host.diagnostics,
             guestDiagnostics: guest.diagnostics,
           });
         }
-        await hostPage.waitForTimeout(100);
+        await hostPage.waitForTimeout(80);
       }
     })();
 
@@ -212,7 +231,8 @@ test('two mobile players stay synchronized and generate a drift report', async (
     ]);
 
     const [hostFinal, guestFinal] = await Promise.all([snapshot(hostPage), snapshot(guestPage)]);
-    const distances = driftSamples.slice(10).map((sample) => sample.distancePx);
+    const rawDistances = driftSamples.slice(10).map((sample) => sample.rawDistancePx);
+    const pathDrift = calculateLagCompensatedDrift(driftSamples);
     const report = {
       generatedAt: new Date().toISOString(),
       environment: { delay, jitter, loss, forceTurn, sampleDurationMs },
@@ -221,26 +241,33 @@ test('two mobile players stay synchronized and generate a drift report', async (
         host: { label: hostFinal.roleLabel, avatar: hostFinal.localAvatar },
         guest: { label: guestFinal.roleLabel, avatar: guestFinal.localAvatar },
       },
-      drift: {
-        samples: distances.length,
-        averagePx: +average(distances).toFixed(2),
-        p95Px: +percentile(distances, 0.95).toFixed(2),
-        maxPx: +(distances.length ? Math.max(...distances) : 0).toFixed(2),
+      rawDrift: {
+        samples: rawDistances.length,
+        averagePx: +average(rawDistances).toFixed(2),
+        p95Px: +percentile(rawDistances, 0.95).toFixed(2),
+        maxPx: +(rawDistances.length ? Math.max(...rawDistances) : 0).toFixed(2),
       },
+      pathDrift,
       visual: { host: hostFinal.visual, guest: guestFinal.visual },
       packetSimulation: { host: hostFinal.counters, guest: guestFinal.counters },
       rawSamples: driftSamples,
     };
 
     await attachJson(testInfo, 'multiplayer-drift-report.json', report);
-    console.log(JSON.stringify({ environment: report.environment, routes: report.routes, drift: report.drift, visual: report.visual }, null, 2));
+    console.log(JSON.stringify({
+      environment: report.environment,
+      routes: report.routes,
+      rawDrift: report.rawDrift,
+      pathDrift: report.pathDrift,
+      visual: report.visual,
+    }, null, 2));
 
-    expect(report.drift.samples).toBeGreaterThan(50);
-    expect(report.drift.averagePx).toBeLessThanOrEqual(180);
-    expect(report.drift.p95Px).toBeLessThanOrEqual(300);
-    expect(report.drift.maxPx).toBeLessThanOrEqual(520);
-    expect(hostFinal.visual.p95JumpPx).toBeLessThanOrEqual(90);
-    expect(guestFinal.visual.p95JumpPx).toBeLessThanOrEqual(90);
+    expect(report.pathDrift.samples).toBeGreaterThan(50);
+    expect(report.pathDrift.averagePx).toBeLessThanOrEqual(35);
+    expect(report.pathDrift.p95Px).toBeLessThanOrEqual(70);
+    expect(report.pathDrift.maxPx).toBeLessThanOrEqual(150);
+    expect(hostFinal.visual.p95JumpPx).toBeLessThanOrEqual(45);
+    expect(guestFinal.visual.p95JumpPx).toBeLessThanOrEqual(45);
     expect(hostFinal.counters.sendErrors).toBe(0);
     expect(guestFinal.counters.sendErrors).toBe(0);
   } catch (error) {

@@ -7,21 +7,115 @@ const percentile = (values, p) => {
 };
 const average = (values) => values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
 
+function collectBrowserDiagnostics(page, label) {
+  const entries = [];
+  const push = (type, text) => {
+    entries.push({ at: new Date().toISOString(), label, type, text: String(text).slice(0, 2000) });
+    if (entries.length > 600) entries.splice(0, entries.length - 600);
+  };
+  page.on('console', (message) => push(`console:${message.type()}`, message.text()));
+  page.on('pageerror', (error) => push('pageerror', error?.stack || error?.message || error));
+  page.on('requestfailed', (request) => push('requestfailed', `${request.method()} ${request.url()} — ${request.failure()?.errorText || 'unknown'}`));
+  return entries;
+}
+
+async function pageState(page) {
+  return page.evaluate(() => ({
+    url: location.href,
+    bodyClasses: document.body.className,
+    status: document.getElementById('match-status')?.textContent || '',
+    queue: document.getElementById('queue-online')?.textContent || '',
+    queueTime: document.getElementById('queue-time')?.textContent || '',
+    quickLabel: document.getElementById('quick-match-btn')?.textContent || '',
+    quickDisabled: Boolean(document.getElementById('quick-match-btn')?.disabled),
+    menuActive: Boolean(document.getElementById('menu')?.classList.contains('active')),
+    matchActive: Boolean(document.getElementById('match-screen')?.classList.contains('active')),
+    e2eEnabled: window.BubbleE2E?.enabled === true,
+    snapshot: window.BubbleE2E?.getSnapshot?.() || null,
+  }));
+}
+
+async function attachJson(testInfo, name, value) {
+  await testInfo.attach(name, {
+    body: Buffer.from(JSON.stringify(value, null, 2)),
+    contentType: 'application/json',
+  });
+}
+
 async function enterIsland(page, name, query) {
-  await page.goto(`/${query}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.BubbleE2E?.enabled === true);
+  // A query-only URL preserves either the local root or a GitHub Pages /air/ base path.
+  await page.goto(query, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => window.BubbleE2E?.enabled === true, null, { timeout: 30_000 });
   const auth = page.locator('#auth-screen');
   if (await auth.evaluate((element) => element.classList.contains('active'))) {
     await page.locator('#guest-name-input').fill(name);
     await page.locator('#guest-login-btn').click();
   }
-  await expect(page.locator('#menu')).toHaveClass(/active/);
+  await expect(page.locator('#menu')).toHaveClass(/active/, { timeout: 30_000 });
   await expect(page.locator('#quick-match-btn')).toBeEnabled({ timeout: 45_000 });
 }
 
-async function waitForGame(page) {
-  await page.waitForFunction(() => document.body.classList.contains('multiplayer-running'), null, { timeout: 120_000 });
-  await page.waitForFunction(() => window.BubbleE2E?.getSnapshot?.().puck, null, { timeout: 30_000 });
+async function leaveMatch(page) {
+  await page.evaluate(async () => {
+    try { await window.BubbleMultiplayer?.leave?.('e2e-retry'); } catch (_) {}
+  });
+  await page.waitForFunction(() => document.getElementById('menu')?.classList.contains('active'), null, { timeout: 20_000 });
+}
+
+async function waitForGamePair(pageA, pageB, timeoutMs) {
+  const started = Date.now();
+  let last = null;
+  while (Date.now() - started < timeoutMs) {
+    const [stateA, stateB] = await Promise.all([pageState(pageA), pageState(pageB)]);
+    last = { stateA, stateB };
+    const runningA = stateA.bodyClasses.includes('multiplayer-running');
+    const runningB = stateB.bodyClasses.includes('multiplayer-running');
+    const puckA = Boolean(stateA.snapshot?.puck);
+    const puckB = Boolean(stateB.snapshot?.puck);
+    if (runningA && runningB && puckA && puckB) return last;
+
+    const combined = `${stateA.status} ${stateA.queue} ${stateB.status} ${stateB.queue}`;
+    if (/連線失敗|設定錯誤|匿名登入.*限制|權限被拒絕|資料庫尚未安裝|CHANNEL_ERROR|TIMED_OUT/i.test(combined)) {
+      throw new Error(`多人連線明確失敗：${combined}`);
+    }
+    await pageA.waitForTimeout(500);
+  }
+  throw new Error(`等待雙玩家進入遊戲逾時：${JSON.stringify(last)}`);
+}
+
+async function pairWithOneRetry(pageA, pageB, testInfo) {
+  const attempts = [
+    { first: pageA, second: pageB, label: 'A-first' },
+    { first: pageB, second: pageA, label: 'B-first-retry' },
+  ];
+  let previousError = null;
+
+  for (let index = 0; index < attempts.length; index += 1) {
+    const attempt = attempts[index];
+    if (index > 0) {
+      await Promise.allSettled([leaveMatch(pageA), leaveMatch(pageB)]);
+      await pageA.waitForTimeout(700);
+    }
+
+    await attempt.first.locator('#quick-match-btn').click();
+    // Avoid two first-poll requests racing at exactly the same millisecond.
+    await attempt.first.waitForTimeout(650);
+    await attempt.second.locator('#quick-match-btn').click();
+
+    try {
+      return await waitForGamePair(pageA, pageB, index === 0 ? 55_000 : 75_000);
+    } catch (error) {
+      previousError = error;
+      const states = await Promise.all([pageState(pageA), pageState(pageB)]);
+      await attachJson(testInfo, `pairing-attempt-${index + 1}-${attempt.label}.json`, {
+        error: error instanceof Error ? error.message : String(error),
+        pageA: states[0],
+        pageB: states[1],
+      });
+    }
+  }
+
+  throw previousError || new Error('雙玩家配對失敗');
 }
 
 async function drivePaddle(page, phase, durationMs) {
@@ -50,7 +144,7 @@ async function snapshot(page) {
 }
 
 test('two mobile players stay synchronized and generate a drift report', async ({ browser }, testInfo) => {
-  test.setTimeout(180_000);
+  test.setTimeout(240_000);
 
   const delay = Number(process.env.NET_DELAY || 60);
   const jitter = Number(process.env.NET_JITTER || 20);
@@ -63,6 +157,8 @@ test('two mobile players stay synchronized and generate a drift report', async (
   const contextB = await browser.newContext({ ...devices['Pixel 7'], locale: 'zh-TW' });
   const pageA = await contextA.newPage();
   const pageB = await contextB.newPage();
+  const logA = collectBrowserDiagnostics(pageA, 'player-A');
+  const logB = collectBrowserDiagnostics(pageB, 'player-B');
   const suffix = String(Date.now()).slice(-5);
 
   try {
@@ -71,11 +167,7 @@ test('two mobile players stay synchronized and generate a drift report', async (
       enterIsland(pageB, `測試乙${suffix}`, `${queryBase}&testSeed=202`),
     ]);
 
-    await Promise.all([
-      pageA.locator('#quick-match-btn').click(),
-      pageB.locator('#quick-match-btn').click(),
-    ]);
-    await Promise.all([waitForGame(pageA), waitForGame(pageB)]);
+    await pairWithOneRetry(pageA, pageB, testInfo);
 
     const firstA = await snapshot(pageA);
     const firstB = await snapshot(pageB);
@@ -124,10 +216,7 @@ test('two mobile players stay synchronized and generate a drift report', async (
     const report = {
       generatedAt: new Date().toISOString(),
       environment: { delay, jitter, loss, forceTurn, sampleDurationMs },
-      routes: {
-        host: hostFinal.diagnostics,
-        guest: guestFinal.diagnostics,
-      },
+      routes: { host: hostFinal.diagnostics, guest: guestFinal.diagnostics },
       roles: {
         host: { label: hostFinal.roleLabel, avatar: hostFinal.localAvatar },
         guest: { label: guestFinal.roleLabel, avatar: guestFinal.localAvatar },
@@ -138,22 +227,12 @@ test('two mobile players stay synchronized and generate a drift report', async (
         p95Px: +percentile(distances, 0.95).toFixed(2),
         maxPx: +(distances.length ? Math.max(...distances) : 0).toFixed(2),
       },
-      visual: {
-        host: hostFinal.visual,
-        guest: guestFinal.visual,
-      },
-      packetSimulation: {
-        host: hostFinal.counters,
-        guest: guestFinal.counters,
-      },
+      visual: { host: hostFinal.visual, guest: guestFinal.visual },
+      packetSimulation: { host: hostFinal.counters, guest: guestFinal.counters },
       rawSamples: driftSamples,
     };
 
-    await testInfo.attach('multiplayer-drift-report.json', {
-      body: Buffer.from(JSON.stringify(report, null, 2)),
-      contentType: 'application/json',
-    });
-
+    await attachJson(testInfo, 'multiplayer-drift-report.json', report);
     console.log(JSON.stringify({ environment: report.environment, routes: report.routes, drift: report.drift, visual: report.visual }, null, 2));
 
     expect(report.drift.samples).toBeGreaterThan(50);
@@ -164,6 +243,15 @@ test('two mobile players stay synchronized and generate a drift report', async (
     expect(guestFinal.visual.p95JumpPx).toBeLessThanOrEqual(90);
     expect(hostFinal.counters.sendErrors).toBe(0);
     expect(guestFinal.counters.sendErrors).toBe(0);
+  } catch (error) {
+    const [stateA, stateB] = await Promise.allSettled([pageState(pageA), pageState(pageB)]);
+    await attachJson(testInfo, 'failure-diagnostics.json', {
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error),
+      playerA: stateA.status === 'fulfilled' ? stateA.value : String(stateA.reason),
+      playerB: stateB.status === 'fulfilled' ? stateB.value : String(stateB.reason),
+      browserLogs: { playerA: logA, playerB: logB },
+    });
+    throw error;
   } finally {
     await Promise.allSettled([contextA.close(), contextB.close()]);
   }

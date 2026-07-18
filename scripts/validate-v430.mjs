@@ -6,6 +6,7 @@ const loader430Source = await fs.readFile(new URL('../multiplayer-v430-loader.js
 const loader431Source = await fs.readFile(new URL('../multiplayer-v431-loader.js', import.meta.url), 'utf8');
 const loader432Source = await fs.readFile(new URL('../multiplayer-v432-loader.js', import.meta.url), 'utf8');
 const loader433Source = await fs.readFile(new URL('../multiplayer-v433-loader.js', import.meta.url), 'utf8');
+const loader435Source = await fs.readFile(new URL('../multiplayer-v435-loader.js', import.meta.url), 'utf8');
 
 const quickButton = { disabled: false, textContent: '' };
 const matchStatus = { textContent: '' };
@@ -32,6 +33,9 @@ const context = {
   },
   fetch: async (url) => {
     const target = String(url);
+    if (target.includes('multiplayer-v433-loader.js')) {
+      return { ok: true, status: 200, text: async () => loader433Source };
+    }
     if (target.includes('multiplayer-v432-loader.js')) {
       return { ok: true, status: 200, text: async () => loader432Source };
     }
@@ -51,15 +55,15 @@ context.window = context;
 context.globalThis = context;
 
 vm.createContext(context);
-vm.runInContext(loader433Source, context, { filename: 'multiplayer-v433-loader.js' });
+vm.runInContext(loader435Source, context, { filename: 'multiplayer-v435-loader.js' });
 
-await new Promise((resolve) => setTimeout(resolve, 450));
+await new Promise((resolve) => setTimeout(resolve, 650));
 
 if (quickButton.disabled) {
-  throw new Error(`v4.3.3 loader stayed disabled: ${quickButton.textContent}; ${matchStatus.textContent}`);
+  throw new Error(`v4.3.5 loader stayed disabled: ${quickButton.textContent}; ${matchStatus.textContent}`);
 }
 
-if (quickButton.textContent !== '⚡ 防漂移低延遲配對') {
+if (quickButton.textContent !== '⚡ 自適應穩定同步配對') {
   throw new Error(`Unexpected quick-match label: ${quickButton.textContent}`);
 }
 
@@ -67,4 +71,4 @@ if (matchStatus.textContent.includes('失敗')) {
   throw new Error(`Loader reported failure: ${matchStatus.textContent}`);
 }
 
-console.log('✅ v4.3.3 snapshot interpolation, role identity, fixed-step physics and network patches passed');
+console.log('✅ v4.3.5 adaptive synchronization, snapshot interpolation, roles, fixed-step physics and network patches passed');

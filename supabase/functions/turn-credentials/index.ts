@@ -28,40 +28,31 @@ Deno.serve(async (request) => {
     return json({ error: 'authentication_required' }, 401);
   }
 
-  const turnKeyId = Deno.env.get('CLOUDFLARE_TURN_KEY_ID');
-  const turnApiToken = Deno.env.get('CLOUDFLARE_TURN_API_TOKEN');
+  const appName = (Deno.env.get('METERED_APP_NAME') || '').trim();
+  const apiKey = (Deno.env.get('METERED_API_KEY') || '').trim();
 
-  if (!turnKeyId || !turnApiToken) {
+  if (!appName || !apiKey) {
     return json({
-      error: 'turn_secrets_missing',
-      message: 'CLOUDFLARE_TURN_KEY_ID or CLOUDFLARE_TURN_API_TOKEN is not configured.',
+      error: 'metered_secrets_missing',
+      message: 'METERED_APP_NAME or METERED_API_KEY is not configured.',
     }, 503);
   }
 
-  let requestedTtl = 3600;
-  try {
-    const body = await request.json();
-    if (Number.isFinite(Number(body?.ttl))) requestedTtl = Number(body.ttl);
-  } catch (_) {
-    // Empty body is allowed.
+  if (!/^[a-z0-9-]+$/i.test(appName)) {
+    return json({ error: 'invalid_metered_app_name' }, 500);
   }
 
-  const ttl = Math.max(900, Math.min(86400, Math.round(requestedTtl)));
-  const endpoint = `https://rtc.live.cloudflare.com/v1/turn/keys/${encodeURIComponent(turnKeyId)}/credentials/generate-ice-servers`;
+  const endpoint = `https://${appName}.metered.live/api/v1/turn/credentials?apiKey=${encodeURIComponent(apiKey)}`;
 
   try {
     const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${turnApiToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ttl }),
+      method: 'GET',
+      headers: { Accept: 'application/json' },
     });
 
     const data = await response.json().catch(() => null);
     if (!response.ok) {
-      console.error('Cloudflare TURN credential error', response.status, data);
+      console.error('Metered TURN credential error', response.status, data);
       return json({
         error: 'turn_provider_error',
         providerStatus: response.status,
@@ -69,25 +60,29 @@ Deno.serve(async (request) => {
       }, 502);
     }
 
-    const iceServers = Array.isArray(data?.iceServers) ? data.iceServers : [];
+    const iceServers = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.iceServers)
+        ? data.iceServers
+        : [];
+
     const hasTurn = iceServers.some((server: { urls?: string | string[] }) => {
       const urls = Array.isArray(server?.urls) ? server.urls : [server?.urls];
       return urls.some((url) => typeof url === 'string' && /^turns?:/i.test(url));
     });
 
     if (!hasTurn) {
-      console.error('Cloudflare response did not contain TURN servers', data);
+      console.error('Metered response did not contain TURN servers', data);
       return json({ error: 'turn_servers_missing' }, 502);
     }
 
     return json({
       iceServers,
-      ttl,
-      expiresAt: Date.now() + ttl * 1000,
-      provider: 'cloudflare-realtime-turn',
+      expiresAt: Date.now() + 15 * 60 * 1000,
+      provider: 'metered-open-relay',
     });
   } catch (error) {
-    console.error('TURN credential request failed', error);
+    console.error('Metered TURN credential request failed', error);
     return json({
       error: 'turn_request_failed',
       message: error instanceof Error ? error.message : String(error),

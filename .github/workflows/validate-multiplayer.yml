@@ -11,6 +11,7 @@ on:
       - 'multiplayer-v431-loader.js'
       - 'multiplayer-v432-loader.js'
       - 'multiplayer-v433-loader.js'
+      - 'multiplayer-v435-loader.js'
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/validate-v430.mjs'
       - 'scripts/run-puck-sync-matrix.mjs'
@@ -43,6 +44,7 @@ jobs:
           node --check multiplayer-v431-loader.js
           node --check multiplayer-v432-loader.js
           node --check multiplayer-v433-loader.js
+          node --check multiplayer-v435-loader.js
           node --check multiplayer-test-hooks-v434.js
           node --check scripts/run-puck-sync-matrix.mjs
           node --check tests/e2e/multiplayer-drift.spec.mjs

@@ -8,6 +8,7 @@ on:
       - 'multiplayer-v430-loader.js'
       - 'multiplayer-v431-loader.js'
       - 'multiplayer-v432-loader.js'
+      - 'multiplayer-v433-loader.js'
       - 'scripts/validate-v430.mjs'
       - '.github/workflows/validate-multiplayer.yml'
   workflow_dispatch:
@@ -33,6 +34,7 @@ jobs:
           node --check multiplayer-v430-loader.js
           node --check multiplayer-v431-loader.js
           node --check multiplayer-v432-loader.js
+          node --check multiplayer-v433-loader.js
 
       - name: Apply and validate all runtime patches
         run: node scripts/validate-v430.mjs

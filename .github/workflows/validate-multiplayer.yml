@@ -19,6 +19,24 @@ on:
       - 'playwright.config.mjs'
       - '.github/workflows/validate-multiplayer.yml'
       - '.github/workflows/multiplayer-e2e-lab.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'package.json'
+      - 'multiplayer-v408.js'
+      - 'multiplayer-v430-loader.js'
+      - 'multiplayer-v431-loader.js'
+      - 'multiplayer-v432-loader.js'
+      - 'multiplayer-v433-loader.js'
+      - 'multiplayer-v435-loader.js'
+      - 'multiplayer-test-hooks-v434.js'
+      - 'scripts/validate-v430.mjs'
+      - 'scripts/run-puck-sync-matrix.mjs'
+      - 'tests/e2e/multiplayer-drift.spec.mjs'
+      - 'playwright.config.mjs'
+      - '.github/workflows/validate-multiplayer.yml'
+      - '.github/workflows/multiplayer-e2e-lab.yml'
   workflow_dispatch:
 
 permissions:

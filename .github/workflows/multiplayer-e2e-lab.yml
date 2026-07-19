@@ -11,6 +11,7 @@ on:
       - 'multiplayer-v435-loader.js'
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/run-e2e-route-gate.mjs'
+      - 'scripts/verify-e2e-report.mjs'
       - 'tests/e2e/**'
       - '.github/workflows/multiplayer-e2e-lab.yml'
   pull_request:
@@ -23,6 +24,7 @@ on:
       - 'multiplayer-v435-loader.js'
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/run-e2e-route-gate.mjs'
+      - 'scripts/verify-e2e-report.mjs'
       - 'tests/e2e/**'
       - '.github/workflows/multiplayer-e2e-lab.yml'
   workflow_dispatch:
@@ -92,10 +94,16 @@ jobs:
       - name: Run deterministic synchronization matrix
         run: npm run test:sync
 
-      - name: Run two-player browser laboratory and verify route
+      - name: Run two-player browser laboratory
         id: browser_lab
         continue-on-error: true
-        run: node scripts/run-e2e-route-gate.mjs
+        run: npm run test:e2e
+
+      - name: Verify actual route and interpolated active-play drift
+        id: route_gate
+        if: always()
+        continue-on-error: true
+        run: node scripts/verify-e2e-report.mjs
 
       - name: Upload reports, traces and videos
         if: always()
@@ -120,15 +128,16 @@ jobs:
             echo "- 丟包：${NET_LOSS}%"
             echo "- 強制 TURN：${FORCE_TURN}"
             echo "- 量測時間：${SAMPLE_DURATION_MS}ms"
-            echo "- 瀏覽器與路由驗證：${{ steps.browser_lab.outcome }}"
+            echo "- 原始瀏覽器測試：${{ steps.browser_lab.outcome }}"
+            echo "- 路由與 active-play 25/50/90：${{ steps.route_gate.outcome }}"
             echo ''
-            echo 'P2P 工作會要求兩端 route=P2P；TURN 工作會要求兩端 route=METERED、relayOnlyAttempt=true。'
-            echo '報告會分開顯示 rawDrift 與扣除視覺延遲後的 pathDrift。'
-            echo '失敗時請下載對應 route artifact，查看 failure-diagnostics.json、Trace、截圖與影片。'
+            echo 'P2P 要求兩端 route=P2P；TURN 要求兩端 route=METERED、relayOnlyAttempt=true。'
+            echo '完整視窗與開球重置樣本保留在報告；正式漂移門檻使用時間內插後的 active-play 指標。'
+            echo '失敗時請下載對應 route artifact，查看 route-gate、failure-diagnostics、Trace、截圖與影片。'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fail workflow when browser laboratory or route gate failed
-        if: steps.browser_lab.outcome != 'success'
+      - name: Fail workflow when route or active-play gate failed
+        if: steps.route_gate.outcome != 'success'
         run: |
-          echo "${EXPECT_ROUTE} 雙玩家瀏覽器或路由驗證失敗；完整狀態已上傳到 artifact。"
+          echo "${EXPECT_ROUTE} 路由或 active-play 漂移驗證失敗；完整狀態已上傳到 artifact。"
           exit 1

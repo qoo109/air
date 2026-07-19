@@ -18,6 +18,11 @@
         }
       })`;
 
+  const INITIAL_CONNECT_TIMEOUT_V1 = `          }, NET.p2pTimeout);
+          return;`;
+  const INITIAL_CONNECT_TIMEOUT_V2 = `          }, relayOnlyAttempt ? 7000 : NET.p2pTimeout);
+          return;`;
+
   async function boot() {
     if (typeof DecompressionStream !== 'function') {
       throw new Error('此瀏覽器版本不支援 v5.0 低延遲引擎，請更新 Safari 或 Chrome。');
@@ -28,8 +33,10 @@
     const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
     const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
     const source = await new Response(stream).text();
-    const patchedSource = source.replace(RELAY_READY_HANDLER_V1, RELAY_READY_HANDLER_V2);
-    if (patchedSource === source) throw new Error('v5.0 Realtime 雙向備援標記遺失。');
+    const relayPatched = source.replace(RELAY_READY_HANDLER_V1, RELAY_READY_HANDLER_V2);
+    if (relayPatched === source) throw new Error('v5.0 Realtime 雙向備援標記遺失。');
+    const patchedSource = relayPatched.replace(INITIAL_CONNECT_TIMEOUT_V1, INITIAL_CONNECT_TIMEOUT_V2);
+    if (patchedSource === relayPatched) throw new Error('v5.0 TURN 握手期限標記遺失。');
     (0, eval)(patchedSource);
   }
 

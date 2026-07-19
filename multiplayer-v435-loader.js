@@ -9,6 +9,11 @@
     return source.replace(token, replacement);
   };
 
+  const replacePattern = (source, pattern, replacement, label) => {
+    if (!pattern.test(source)) throw new Error(`v4.3.5 patch missing: ${label}`);
+    return source.replace(pattern, replacement);
+  };
+
   async function boot() {
     if (quick) {
       quick.disabled = true;
@@ -95,15 +100,15 @@
       'faster bounded correction',
     );
 
-    loader = replaceToken(
+    loader = replacePattern(
       loader,
-      'puckSnapshots.length = 0;\n     lastStateSequence = 0;',
+      /puckSnapshots\.length = 0;\s*lastStateSequence = 0;/,
       `puckSnapshots.length = 0;
-     adaptiveSnapshotDelayMs = 38;
-     snapshotIntervalEma = 32;
-     snapshotJitterEma = 0;
-     lastSnapshotAt = 0;
-     lastStateSequence = 0;`,
+    adaptiveSnapshotDelayMs = 38;
+    snapshotIntervalEma = 32;
+    snapshotJitterEma = 0;
+    lastSnapshotAt = 0;
+    lastStateSequence = 0;`,
       'reset adaptive synchronizer',
     );
 

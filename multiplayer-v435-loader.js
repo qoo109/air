@@ -88,16 +88,30 @@
 
     loader = replaceToken(
       loader,
+      'localHitGraceUntil = ballNow + 95 + Math.min(55, latency);',
+      'localHitGraceUntil = ballNow + 70 + Math.min(30, latency);',
+      'shorter local collision grace',
+    );
+
+    loader = replaceToken(
+      loader,
       'const snapDistance = inHitGrace ? 420 : 220;',
-      'const snapDistance = inHitGrace ? 320 : 150;',
+      'const snapDistance = inHitGrace ? 260 : 150;',
       'tighter divergence bound',
     );
 
     loader = replaceToken(
       loader,
+      '} else if (!inHitGrace && distance > 3) {',
+      '} else if (distance > (inHitGrace ? 24 : 3)) {',
+      'gentle correction during collision grace',
+    );
+
+    loader = replaceToken(
+      loader,
       'const correctionRate = distance > 100 ? 16 : distance > 36 ? 11 : 7;',
-      'const correctionRate = distance > 90 ? 20 : distance > 30 ? 14 : 9;',
-      'faster bounded correction',
+      'const correctionRate = inHitGrace ? (distance > 90 ? 7.5 : 4.5) : distance > 90 ? 20 : distance > 30 ? 14 : 9;',
+      'adaptive collision correction',
     );
 
     loader = replacePattern(

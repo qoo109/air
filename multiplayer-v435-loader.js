@@ -9,6 +9,11 @@
     return source.replace(token, replacement);
   };
 
+  const replacePattern = (source, pattern, replacement, label) => {
+    if (!pattern.test(source)) throw new Error(`v4.3.5 patch missing: ${label}`);
+    return source.replace(pattern, replacement);
+  };
+
   async function boot() {
     if (quick) {
       quick.disabled = true;
@@ -61,12 +66,13 @@
      lastSnapshotAt = stateReceivedAt;
 
      if (previousSnapshot) {
+       const snapshotScoreChanged = previousGuestScore !== next.guestScore || previousHostScore !== next.hostScore;
        const speedBefore = Math.hypot(previousSnapshot.vx, previousSnapshot.vy);
        const speedAfter = Math.hypot(next.vx, next.vy);
        const dot = previousSnapshot.vx * next.vx + previousSnapshot.vy * next.vy;
        const sharpDirectionChange = speedBefore > 160 && speedAfter > 160 && dot < speedBefore * speedAfter * 0.20;
        const discontinuity = Math.hypot(next.x - previousSnapshot.x, next.y - previousSnapshot.y) > 150;
-       if (sharpDirectionChange || discontinuity || scoreChanged) puckSnapshots.length = 0;
+       if (sharpDirectionChange || discontinuity || snapshotScoreChanged) puckSnapshots.length = 0;
      }
 
      puckSnapshots.push({`,
@@ -94,15 +100,15 @@
       'faster bounded correction',
     );
 
-    loader = replaceToken(
+    loader = replacePattern(
       loader,
-      'puckSnapshots.length = 0;\n     lastStateSequence = 0;',
+      /puckSnapshots\.length = 0;\s*lastStateSequence = 0;/,
       `puckSnapshots.length = 0;
-     adaptiveSnapshotDelayMs = 38;
-     snapshotIntervalEma = 32;
-     snapshotJitterEma = 0;
-     lastSnapshotAt = 0;
-     lastStateSequence = 0;`,
+    adaptiveSnapshotDelayMs = 38;
+    snapshotIntervalEma = 32;
+    snapshotJitterEma = 0;
+    lastSnapshotAt = 0;
+    lastStateSequence = 0;`,
       'reset adaptive synchronizer',
     );
 

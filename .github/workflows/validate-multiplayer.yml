@@ -6,6 +6,26 @@ on:
     paths:
       - 'index.html'
       - 'package.json'
+      - 'realtime-hello-throttle-v404.js'
+      - 'multiplayer-v408.js'
+      - 'multiplayer-v430-loader.js'
+      - 'multiplayer-v431-loader.js'
+      - 'multiplayer-v432-loader.js'
+      - 'multiplayer-v433-loader.js'
+      - 'multiplayer-v435-loader.js'
+      - 'multiplayer-test-hooks-v434.js'
+      - 'scripts/validate-v430.mjs'
+      - 'scripts/run-puck-sync-matrix.mjs'
+      - 'tests/e2e/multiplayer-drift.spec.mjs'
+      - 'playwright.config.mjs'
+      - '.github/workflows/validate-multiplayer.yml'
+      - '.github/workflows/multiplayer-e2e-lab.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'package.json'
+      - 'realtime-hello-throttle-v404.js'
       - 'multiplayer-v408.js'
       - 'multiplayer-v430-loader.js'
       - 'multiplayer-v431-loader.js'
@@ -40,6 +60,7 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
+          node --check realtime-hello-throttle-v404.js
           node --check multiplayer-v430-loader.js
           node --check multiplayer-v431-loader.js
           node --check multiplayer-v432-loader.js

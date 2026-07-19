@@ -9,6 +9,8 @@ on:
       - 'playwright.config.mjs'
       - 'realtime-hello-throttle-v404.js'
       - 'multiplayer-v435-loader.js'
+      - 'multiplayer-v500*.js'
+      - 'multiplayer-v500.css'
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/run-e2e-route-gate.mjs'
       - 'scripts/verify-e2e-report.mjs'
@@ -22,6 +24,8 @@ on:
       - 'playwright.config.mjs'
       - 'realtime-hello-throttle-v404.js'
       - 'multiplayer-v435-loader.js'
+      - 'multiplayer-v500*.js'
+      - 'multiplayer-v500.css'
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/run-e2e-route-gate.mjs'
       - 'scripts/verify-e2e-report.mjs'
@@ -126,7 +130,7 @@ jobs:
         if: always()
         run: |
           {
-            echo '## 泡泡島雙玩家測試 v4.3.5'
+            echo '## 泡泡島雙玩家測試 v5.0 Stable'
             echo ''
             echo "- 驗證路徑：${EXPECT_ROUTE}"
             echo "- 延遲：${NET_DELAY}ms"
@@ -140,7 +144,7 @@ jobs:
             echo ''
             echo 'P2P 要求 route=P2P；TURN 要求 route=METERED、relayOnlyAttempt=true；Realtime 要求 transport=relay 且 WebRTC 未連線。'
             echo 'P2P／TURN 使用 25/50/90；Realtime 備援使用 45/90/160 降階門檻，並確認實際 relay-game 流量。'
-            echo '完整視窗與開球重置樣本保留在報告；正式漂移門檻使用時間內插後的 active-play 指標。'
+            echo 'v5.0 同時驗證壓縮 Runtime 啟動、較高同步頻率與 0.9 秒斷線備援。'
             echo '失敗時請下載對應 route artifact，查看 route-gate、failure-diagnostics、Trace、截圖與影片。'
           } >> "$GITHUB_STEP_SUMMARY"
 

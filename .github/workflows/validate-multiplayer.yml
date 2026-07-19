@@ -13,6 +13,8 @@ on:
       - 'multiplayer-v432-loader.js'
       - 'multiplayer-v433-loader.js'
       - 'multiplayer-v435-loader.js'
+      - 'multiplayer-v500*.js'
+      - 'multiplayer-v500.css'
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/validate-v430.mjs'
       - 'scripts/run-puck-sync-matrix.mjs'
@@ -35,6 +37,8 @@ on:
       - 'multiplayer-v432-loader.js'
       - 'multiplayer-v433-loader.js'
       - 'multiplayer-v435-loader.js'
+      - 'multiplayer-v500*.js'
+      - 'multiplayer-v500.css'
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/validate-v430.mjs'
       - 'scripts/run-puck-sync-matrix.mjs'
@@ -72,6 +76,9 @@ jobs:
           node --check multiplayer-v432-loader.js
           node --check multiplayer-v433-loader.js
           node --check multiplayer-v435-loader.js
+          node --check multiplayer-v500.js
+          node --check multiplayer-v500-ui.js
+          for payload in multiplayer-v500-payload-*.js; do node --check "$payload"; done
           node --check multiplayer-test-hooks-v434.js
           node --check scripts/run-puck-sync-matrix.mjs
           node --check scripts/run-e2e-route-gate.mjs
@@ -79,6 +86,21 @@ jobs:
           node --check tests/e2e/multiplayer-drift.spec.mjs
           node --check tests/e2e/multiplayer-realtime-fallback.spec.mjs
           node --check playwright.config.mjs
+
+      - name: Verify v5.0 compiled runtime payload
+        run: |
+          cat multiplayer-v500-payload-*.js \
+            | sed -E "s/^.*\\+'//; s/';$//" \
+            | tr -d '\n' \
+            | base64 --decode \
+            | gzip --decompress \
+            > /tmp/multiplayer-v500-runtime.js
+          node --check /tmp/multiplayer-v500-runtime.js
+          grep -Fq "version: '5.0.0'" /tmp/multiplayer-v500-runtime.js
+          grep -Fq 'startRoom' /tmp/multiplayer-v500-runtime.js
+          grep -Fq 'function scheduleDisconnectCheck()' /tmp/multiplayer-v500-runtime.js
+          grep -Fq 'disconnectTimer = setTimeout' /tmp/multiplayer-v500-runtime.js
+          grep -Fq '}, 900);' /tmp/multiplayer-v500-runtime.js
 
       - name: Apply and validate all runtime patches
         run: node scripts/validate-v430.mjs

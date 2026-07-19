@@ -1,12 +1,12 @@
 {
-  "name": "像素桌面空氣曲棍球 v1.4.1",
-  "short_name": "Pixel Hockey",
-  "description": "復古可愛像素桌面風格的手機空氣曲棍球遊戲",
+  "name": "泡泡島空氣曲棍球 v5.0 Stable",
+  "short_name": "泡泡島曲棍球",
+  "description": "支援 P2P、Metered TURN、Realtime 備援與好友房號的手機空氣曲棍球",
   "start_url": "./index.html",
   "display": "fullscreen",
   "background_color": "#cfe4f4",
   "theme_color": "#b9d8ef",
-  "orientation": "portrait",
+  "orientation": "any",
   "icons": [
     {
       "src": "icon.svg",

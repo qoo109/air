@@ -53,9 +53,13 @@ jobs:
             --exclude 'package-lock.json' \
             --exclude 'package.json'
 
-          grep -Fq '<title>泡泡島空氣曲棍球 v4.3.5</title>' _site/index.html
+          grep -Fq '<title>泡泡島空氣曲棍球 v5.0.0</title>' _site/index.html
+          grep -Fq 'multiplayer-v500.js?v=5.0.0' _site/index.html
           test -f _site/.nojekyll
-          test -f _site/multiplayer-v435-loader.js
+          test -f _site/multiplayer-v500.js
+          test -f _site/multiplayer-v500-ui.js
+          test -f _site/multiplayer-v500.css
+          test "$(find _site -maxdepth 1 -name 'multiplayer-v500-payload-*.js' | wc -l)" -eq 7
           test -f _site/realtime-hello-throttle-v404.js
           test -f _site/multiplayer-test-hooks-v434.js
 
@@ -108,7 +112,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           state=success
-          description='Bubble Island deployed to GitHub Pages'
+          description='Bubble Island v5.0 deployed to GitHub Pages'
           if [ "$DEPLOY_OUTCOME" != success ]; then
             state=failure
             description="Pages deploy failed: $DEPLOY_OUTCOME"

@@ -11,6 +11,16 @@ on:
       - 'multiplayer-test-hooks-v434.js'
       - 'tests/e2e/**'
       - '.github/workflows/multiplayer-e2e-lab.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'package.json'
+      - 'playwright.config.mjs'
+      - 'multiplayer-v435-loader.js'
+      - 'multiplayer-test-hooks-v434.js'
+      - 'tests/e2e/**'
+      - '.github/workflows/multiplayer-e2e-lab.yml'
   workflow_dispatch:
     inputs:
       delay_ms:
@@ -43,7 +53,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: multiplayer-e2e-lab
+  group: multiplayer-e2e-lab-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

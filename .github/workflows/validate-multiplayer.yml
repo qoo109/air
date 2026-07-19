@@ -98,7 +98,9 @@ jobs:
           node --check /tmp/multiplayer-v500-runtime.js
           grep -Fq "version: '5.0.0'" /tmp/multiplayer-v500-runtime.js
           grep -Fq 'startRoom' /tmp/multiplayer-v500-runtime.js
-          grep -Fq 'disconnectFallbackTimer = setTimeout' /tmp/multiplayer-v500-runtime.js
+          grep -Fq 'function scheduleDisconnectCheck()' /tmp/multiplayer-v500-runtime.js
+          grep -Fq 'disconnectTimer = setTimeout' /tmp/multiplayer-v500-runtime.js
+          grep -Fq '}, 900);' /tmp/multiplayer-v500-runtime.js
 
       - name: Apply and validate all runtime patches
         run: node scripts/validate-v430.mjs

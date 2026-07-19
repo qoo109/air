@@ -20,6 +20,7 @@
     jitterMs: numberParam('netJitter', Number.isFinite(compact[1]) ? compact[1] : 0, 0, 500),
     lossPct: numberParam('netLoss', Number.isFinite(compact[2]) ? compact[2] : 0, 0, 50),
     seed: numberParam('testSeed', 4317, 1, 2147483646),
+    forceRealtime: params.get('forceRealtime') === '1',
   };
 
   let randomState = config.seed >>> 0;
@@ -35,10 +36,34 @@
     delayedPackets: 0,
     droppedPackets: 0,
     sendErrors: 0,
+    realtimeGameplayPackets: 0,
+    realtimeControlPackets: 0,
+    realtimeSendErrors: 0,
     renderedFrames: 0,
     puckSamples: 0,
     maxPuckJumpPx: 0,
   };
+
+  const simulatedDelay = () => {
+    const jitter = (random() * 2 - 1) * config.jitterMs;
+    return Math.max(0, Math.round(config.delayMs + jitter));
+  };
+
+  if (config.forceRealtime) {
+    const originalSetTimeout = window.setTimeout.bind(window);
+    window.setTimeout = (handler, delay, ...args) => {
+      const value = Number(delay);
+      const accelerated = value === 5200 ? 350 : value === 8500 ? 450 : value;
+      return originalSetTimeout(handler, accelerated, ...args);
+    };
+
+    const ForcedRealtimePeerConnection = class {
+      constructor() {
+        throw new DOMException('E2E forced Supabase Realtime fallback', 'NotSupportedError');
+      }
+    };
+    window.RTCPeerConnection = ForcedRealtimePeerConnection;
+  }
 
   if (typeof RTCDataChannel !== 'undefined') {
     const originalSend = RTCDataChannel.prototype.send;
@@ -53,8 +78,7 @@
         return undefined;
       }
 
-      const jitter = (random() * 2 - 1) * config.jitterMs;
-      const delay = Math.max(0, Math.round(config.delayMs + jitter));
+      const delay = simulatedDelay();
       if (!delay) return originalSend.call(this, data);
 
       counters.delayedPackets += 1;
@@ -69,6 +93,56 @@
         }
       }, delay);
       return undefined;
+    };
+  }
+
+  const supabaseClient = window.BubbleSupabaseClient;
+  if (supabaseClient?.channel) {
+    const originalChannel = supabaseClient.channel.bind(supabaseClient);
+    supabaseClient.channel = (topic, options) => {
+      const channel = originalChannel(topic, options);
+      if (!String(topic).startsWith('game:') || !channel?.send) return channel;
+      const originalSend = channel.send.bind(channel);
+      channel.send = message => {
+        const event = String(message?.event || '');
+        const isRelayGame = /^relay-game-v\d+$/.test(event);
+        const isRelayControl = /^relay-control-v\d+$/.test(event);
+        if (isRelayControl) counters.realtimeControlPackets += 1;
+        if (!isRelayGame) return originalSend(message);
+
+        counters.realtimeGameplayPackets += 1;
+        counters.gameplayPackets += 1;
+        if (random() * 100 < config.lossPct) {
+          counters.droppedPackets += 1;
+          return Promise.resolve('realtime-e2e-dropped');
+        }
+
+        const invoke = () => {
+          try {
+            const result = originalSend(message);
+            if (result?.catch) {
+              return result.catch(error => {
+                counters.realtimeSendErrors += 1;
+                counters.sendErrors += 1;
+                throw error;
+              });
+            }
+            return result;
+          } catch (error) {
+            counters.realtimeSendErrors += 1;
+            counters.sendErrors += 1;
+            throw error;
+          }
+        };
+
+        const delay = simulatedDelay();
+        if (!delay) return invoke();
+        counters.delayedPackets += 1;
+        return new Promise((resolve, reject) => {
+          setTimeout(() => Promise.resolve().then(invoke).then(resolve, reject), delay);
+        });
+      };
+      return channel;
     };
   }
 
@@ -130,6 +204,10 @@
     },
     getSnapshot() {
       const jumps = puckHistory.map((sample) => Number(sample.jumpPx || 0));
+      const rawDiagnostics = window.BubbleMultiplayer?.diagnostics?.() || null;
+      const diagnostics = config.forceRealtime && rawDiagnostics?.transport === 'relay'
+        ? { ...rawDiagnostics, route: 'REALTIME', forcedRealtime: true }
+        : rawDiagnostics;
       return {
         at: performance.now(),
         puck: lastPuck ? { ...lastPuck } : null,
@@ -138,7 +216,7 @@
         rivalAvatar: document.querySelector('.hud-ai .hud-avatar')?.textContent || '',
         playerScore: document.getElementById('player-score')?.textContent || '',
         rivalScore: document.getElementById('ai-score')?.textContent || '',
-        diagnostics: window.BubbleMultiplayer?.diagnostics?.() || null,
+        diagnostics,
         counters: { ...counters },
         visual: {
           p95JumpPx: quantile(jumps, 0.95),

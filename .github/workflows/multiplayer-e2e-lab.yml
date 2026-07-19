@@ -61,18 +61,19 @@ jobs:
   two-player-lab:
     name: two-player-lab (${{ matrix.route }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 22
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
-        route: [p2p, turn]
+        route: [p2p, turn, realtime]
     env:
       NET_DELAY: ${{ inputs.delay_ms || '60' }}
       NET_JITTER: ${{ inputs.jitter_ms || '20' }}
       NET_LOSS: ${{ inputs.loss_pct || '2' }}
       FORCE_TURN: ${{ matrix.route == 'turn' }}
-      EXPECT_ROUTE: ${{ matrix.route == 'turn' && 'METERED' || 'P2P' }}
+      FORCE_REALTIME: ${{ matrix.route == 'realtime' }}
+      EXPECT_ROUTE: ${{ matrix.route == 'turn' && 'METERED' || matrix.route == 'realtime' && 'REALTIME' || 'P2P' }}
       SAMPLE_DURATION_MS: ${{ inputs.sample_duration_ms || '15000' }}
 
     steps:
@@ -97,7 +98,12 @@ jobs:
       - name: Run two-player browser laboratory
         id: browser_lab
         continue-on-error: true
-        run: npm run test:e2e
+        run: |
+          if [ "$FORCE_REALTIME" = "true" ]; then
+            npx playwright test tests/e2e/multiplayer-realtime-fallback.spec.mjs
+          else
+            npx playwright test tests/e2e/multiplayer-drift.spec.mjs
+          fi
 
       - name: Verify actual route and interpolated active-play drift
         id: route_gate
@@ -127,11 +133,13 @@ jobs:
             echo "- 抖動：${NET_JITTER}ms"
             echo "- 丟包：${NET_LOSS}%"
             echo "- 強制 TURN：${FORCE_TURN}"
+            echo "- 強制 Realtime 備援：${FORCE_REALTIME}"
             echo "- 量測時間：${SAMPLE_DURATION_MS}ms"
             echo "- 原始瀏覽器測試：${{ steps.browser_lab.outcome }}"
-            echo "- 路由與 active-play 25/50/90：${{ steps.route_gate.outcome }}"
+            echo "- 路由與 active-play gate：${{ steps.route_gate.outcome }}"
             echo ''
-            echo 'P2P 要求兩端 route=P2P；TURN 要求兩端 route=METERED、relayOnlyAttempt=true。'
+            echo 'P2P 要求 route=P2P；TURN 要求 route=METERED、relayOnlyAttempt=true；Realtime 要求 transport=relay 且 WebRTC 未連線。'
+            echo 'P2P／TURN 使用 25/50/90；Realtime 備援使用 45/90/160 降階門檻，並確認實際 relay-game 流量。'
             echo '完整視窗與開球重置樣本保留在報告；正式漂移門檻使用時間內插後的 active-play 指標。'
             echo '失敗時請下載對應 route artifact，查看 route-gate、failure-diagnostics、Trace、截圖與影片。'
           } >> "$GITHUB_STEP_SUMMARY"

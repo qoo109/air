@@ -61,12 +61,13 @@
      lastSnapshotAt = stateReceivedAt;
 
      if (previousSnapshot) {
+       const snapshotScoreChanged = previousGuestScore !== next.guestScore || previousHostScore !== next.hostScore;
        const speedBefore = Math.hypot(previousSnapshot.vx, previousSnapshot.vy);
        const speedAfter = Math.hypot(next.vx, next.vy);
        const dot = previousSnapshot.vx * next.vx + previousSnapshot.vy * next.vy;
        const sharpDirectionChange = speedBefore > 160 && speedAfter > 160 && dot < speedBefore * speedAfter * 0.20;
        const discontinuity = Math.hypot(next.x - previousSnapshot.x, next.y - previousSnapshot.y) > 150;
-       if (sharpDirectionChange || discontinuity || scoreChanged) puckSnapshots.length = 0;
+       if (sharpDirectionChange || discontinuity || snapshotScoreChanged) puckSnapshots.length = 0;
      }
 
      puckSnapshots.push({`,

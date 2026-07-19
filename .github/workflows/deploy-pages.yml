@@ -14,22 +14,25 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
 concurrency:
-  group: pages
+  group: github-pages
   cancel-in-progress: true
 
 jobs:
   build:
+    name: Build verified static artifact
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout main
         uses: actions/checkout@v6
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Prepare static site
         run: |
@@ -45,21 +48,27 @@ jobs:
             --exclude 'playwright-report/' \
             --exclude 'package-lock.json' \
             --exclude 'package.json'
-          test -f _site/index.html
-          grep -q '泡泡島空氣曲棍球 v4.3.5' _site/index.html
+
+          grep -Fq '<title>泡泡島空氣曲棍球 v4.3.5</title>' _site/index.html
+          test -f _site/.nojekyll
+          test -f _site/multiplayer-v435-loader.js
+          test -f _site/realtime-hello-throttle-v404.js
+          test -f _site/multiplayer-test-hooks-v434.js
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
   deploy:
+    name: Deploy verified artifact
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

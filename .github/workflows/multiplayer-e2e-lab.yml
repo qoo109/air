@@ -10,6 +10,7 @@ on:
       - 'realtime-hello-throttle-v404.js'
       - 'multiplayer-v435-loader.js'
       - 'multiplayer-test-hooks-v434.js'
+      - 'scripts/run-e2e-route-gate.mjs'
       - 'tests/e2e/**'
       - '.github/workflows/multiplayer-e2e-lab.yml'
   pull_request:
@@ -21,6 +22,7 @@ on:
       - 'realtime-hello-throttle-v404.js'
       - 'multiplayer-v435-loader.js'
       - 'multiplayer-test-hooks-v434.js'
+      - 'scripts/run-e2e-route-gate.mjs'
       - 'tests/e2e/**'
       - '.github/workflows/multiplayer-e2e-lab.yml'
   workflow_dispatch:
@@ -40,11 +42,6 @@ on:
         required: true
         default: '2'
         type: string
-      force_turn:
-        description: Force Metered TURN instead of attempting direct P2P
-        required: true
-        default: false
-        type: boolean
       sample_duration_ms:
         description: Measurement duration in milliseconds
         required: true
@@ -60,13 +57,20 @@ concurrency:
 
 jobs:
   two-player-lab:
+    name: two-player-lab (${{ matrix.route }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        route: [p2p, turn]
     env:
       NET_DELAY: ${{ inputs.delay_ms || '60' }}
       NET_JITTER: ${{ inputs.jitter_ms || '20' }}
       NET_LOSS: ${{ inputs.loss_pct || '2' }}
-      FORCE_TURN: ${{ inputs.force_turn || false }}
+      FORCE_TURN: ${{ matrix.route == 'turn' }}
+      EXPECT_ROUTE: ${{ matrix.route == 'turn' && 'METERED' || 'P2P' }}
       SAMPLE_DURATION_MS: ${{ inputs.sample_duration_ms || '15000' }}
 
     steps:
@@ -88,16 +92,16 @@ jobs:
       - name: Run deterministic synchronization matrix
         run: npm run test:sync
 
-      - name: Run two-player browser laboratory
+      - name: Run two-player browser laboratory and verify route
         id: browser_lab
         continue-on-error: true
-        run: npm run test:e2e
+        run: node scripts/run-e2e-route-gate.mjs
 
       - name: Upload reports, traces and videos
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: multiplayer-e2e-report-${{ github.run_number }}
+          name: multiplayer-e2e-${{ matrix.route }}-report-${{ github.run_number }}
           path: |
             playwright-report/
             test-results/
@@ -110,19 +114,21 @@ jobs:
           {
             echo '## 泡泡島雙玩家測試 v4.3.5'
             echo ''
+            echo "- 驗證路徑：${EXPECT_ROUTE}"
             echo "- 延遲：${NET_DELAY}ms"
             echo "- 抖動：${NET_JITTER}ms"
             echo "- 丟包：${NET_LOSS}%"
             echo "- 強制 TURN：${FORCE_TURN}"
             echo "- 量測時間：${SAMPLE_DURATION_MS}ms"
-            echo "- 瀏覽器測試結果：${{ steps.browser_lab.outcome }}"
+            echo "- 瀏覽器與路由驗證：${{ steps.browser_lab.outcome }}"
             echo ''
+            echo 'P2P 工作會要求兩端 route=P2P；TURN 工作會要求兩端 route=METERED、relayOnlyAttempt=true。'
             echo '報告會分開顯示 rawDrift 與扣除視覺延遲後的 pathDrift。'
-            echo '失敗時請下載 artifact，查看 failure-diagnostics.json、Trace、截圖與影片。'
+            echo '失敗時請下載對應 route artifact，查看 failure-diagnostics.json、Trace、截圖與影片。'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fail workflow when browser laboratory failed
+      - name: Fail workflow when browser laboratory or route gate failed
         if: steps.browser_lab.outcome != 'success'
         run: |
-          echo '雙玩家瀏覽器測試失敗；完整狀態與瀏覽器日誌已上傳到 artifact。'
+          echo "${EXPECT_ROUTE} 雙玩家瀏覽器或路由驗證失敗；完整狀態已上傳到 artifact。"
           exit 1

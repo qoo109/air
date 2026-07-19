@@ -16,6 +16,8 @@ on:
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/validate-v430.mjs'
       - 'scripts/run-puck-sync-matrix.mjs'
+      - 'scripts/run-e2e-route-gate.mjs'
+      - 'scripts/verify-e2e-report.mjs'
       - 'tests/e2e/multiplayer-drift.spec.mjs'
       - 'playwright.config.mjs'
       - '.github/workflows/validate-multiplayer.yml'
@@ -35,6 +37,8 @@ on:
       - 'multiplayer-test-hooks-v434.js'
       - 'scripts/validate-v430.mjs'
       - 'scripts/run-puck-sync-matrix.mjs'
+      - 'scripts/run-e2e-route-gate.mjs'
+      - 'scripts/verify-e2e-report.mjs'
       - 'tests/e2e/multiplayer-drift.spec.mjs'
       - 'playwright.config.mjs'
       - '.github/workflows/validate-multiplayer.yml'
@@ -68,6 +72,8 @@ jobs:
           node --check multiplayer-v435-loader.js
           node --check multiplayer-test-hooks-v434.js
           node --check scripts/run-puck-sync-matrix.mjs
+          node --check scripts/run-e2e-route-gate.mjs
+          node --check scripts/verify-e2e-report.mjs
           node --check tests/e2e/multiplayer-drift.spec.mjs
           node --check playwright.config.mjs
 

@@ -19,6 +19,7 @@ on:
       - 'scripts/run-e2e-route-gate.mjs'
       - 'scripts/verify-e2e-report.mjs'
       - 'tests/e2e/multiplayer-drift.spec.mjs'
+      - 'tests/e2e/multiplayer-realtime-fallback.spec.mjs'
       - 'playwright.config.mjs'
       - '.github/workflows/validate-multiplayer.yml'
       - '.github/workflows/multiplayer-e2e-lab.yml'
@@ -40,6 +41,7 @@ on:
       - 'scripts/run-e2e-route-gate.mjs'
       - 'scripts/verify-e2e-report.mjs'
       - 'tests/e2e/multiplayer-drift.spec.mjs'
+      - 'tests/e2e/multiplayer-realtime-fallback.spec.mjs'
       - 'playwright.config.mjs'
       - '.github/workflows/validate-multiplayer.yml'
       - '.github/workflows/multiplayer-e2e-lab.yml'
@@ -75,6 +77,7 @@ jobs:
           node --check scripts/run-e2e-route-gate.mjs
           node --check scripts/verify-e2e-report.mjs
           node --check tests/e2e/multiplayer-drift.spec.mjs
+          node --check tests/e2e/multiplayer-realtime-fallback.spec.mjs
           node --check playwright.config.mjs
 
       - name: Apply and validate all runtime patches
